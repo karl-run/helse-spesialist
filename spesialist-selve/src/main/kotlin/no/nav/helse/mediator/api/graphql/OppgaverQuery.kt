@@ -14,10 +14,10 @@ import no.nav.helse.mediator.api.graphql.schema.Paginering
 import no.nav.helse.mediator.api.graphql.schema.tilFerdigstilteOppgaver
 import no.nav.helse.mediator.api.graphql.schema.tilOppgaver
 import no.nav.helse.spesialist.api.SaksbehandlerTilganger
-import no.nav.helse.spesialist.api.oppgave.OppgaveMediator
+import no.nav.helse.spesialist.api.oppgave.OppgaveApiDao
 import no.nav.helse.spesialist.api.oppgave.experimental.OppgaveService
 
-class OppgaverQuery(private val oppgaveMediator: OppgaveMediator, private val oppgaveService: OppgaveService) : Query {
+class OppgaverQuery(private val oppgaveApiDao: OppgaveApiDao, private val oppgaveService: OppgaveService) : Query {
 
     fun ferdigstilteOppgaver(behandletAvIdent: String, fom: String?): DataFetcherResult<List<FerdigstiltOppgave>> {
         val fraOgMed = try {
@@ -26,7 +26,7 @@ class OppgaverQuery(private val oppgaveMediator: OppgaveMediator, private val op
             null
         }
 
-        val oppgaver = oppgaveMediator.hentFerdigstilteOppgaver(behandletAvIdent, fraOgMed).tilFerdigstilteOppgaver()
+        val oppgaver = oppgaveApiDao.hentFerdigstilteOppgaver(behandletAvIdent, fraOgMed).tilFerdigstilteOppgaver()
 
         return DataFetcherResult.newResult<List<FerdigstiltOppgave>>().data(oppgaver).build()
     }
