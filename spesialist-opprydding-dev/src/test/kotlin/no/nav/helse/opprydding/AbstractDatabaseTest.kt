@@ -6,6 +6,7 @@ import java.util.UUID
 import javax.sql.DataSource
 import kotliquery.queryOf
 import kotliquery.sessionOf
+import no.nav.helse.opprydding.SpesialistDatabase.spesialistDataSource
 import org.flywaydb.core.Flyway
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -20,9 +21,12 @@ internal abstract class AbstractDatabaseTest {
     protected companion object {
         const val FØDSELSNUMMER = "12345678910"
 
-        private val postgres = PostgreSQLContainer<Nothing>("postgres:14").apply {
+        private val pgContainer = PostgreSQLContainer<Nothing>("postgres:14").apply {
             withReuse(true)
             withLabel("app-navn", "spesialist-opprydding")
+            withDatabaseName("spesialist")
+            withUsername("spesialist")
+            withInitScript("legg_til_oppryddingsbruker.sql")
             start()
 
             println("Database: jdbc:postgresql://localhost:$firstMappedPort/test startet opp, credentials: test og test")
@@ -30,15 +34,15 @@ internal abstract class AbstractDatabaseTest {
 
         val dataSource =
             HikariDataSource(HikariConfig().apply {
-                jdbcUrl = postgres.jdbcUrl
-                username = postgres.username
-                password = postgres.password
+                jdbcUrl = pgContainer.jdbcUrl
+                username = "spesialist-opprydding-dev"
+                password = "ryddepassord"
                 maximumPoolSize = 5
                 minimumIdle = 1
-                idleTimeout = 500001
-                connectionTimeout = 10000
-                maxLifetime = 600001
-                initializationFailTimeout = 5000
+                idleTimeout = 10000
+                connectionTimeout = 500
+                maxLifetime = 30000
+                initializationFailTimeout = 1000
             })
 
         private fun createTruncateFunction(dataSource: DataSource) {
@@ -64,9 +68,9 @@ internal abstract class AbstractDatabaseTest {
             }
         }
 
-        init {
+        private fun kjørSpesialistSineMigreringer(spesialistDataSource: HikariDataSource) {
             Flyway.configure()
-                .dataSource(dataSource)
+                .dataSource(spesialistDataSource)
                 .placeholders(
                     mapOf("spesialist_oid" to UUID.randomUUID().toString())
                 )
@@ -74,8 +78,12 @@ internal abstract class AbstractDatabaseTest {
                 .locations("classpath:db/migration")
                 .load()
                 .migrate()
+        }
 
-            createTruncateFunction(dataSource)
+        init {
+            val spesialistDataSource = spesialistDataSource(pgContainer.jdbcUrl)
+            kjørSpesialistSineMigreringer(spesialistDataSource)
+            createTruncateFunction(spesialistDataSource)
         }
     }
 
