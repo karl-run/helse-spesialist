@@ -189,7 +189,6 @@ internal class HendelseMediator(
             "hendelseId" to hendelseId,
             "godkjent" to godkjenningDTO.godkjent,
             "saksbehandlerident" to godkjenningDTO.saksbehandlerIdent,
-            "saksbehandleroid" to oid,
             "saksbehandlerepost" to epost,
             "godkjenttidspunkt" to now()
         ).apply {
@@ -416,7 +415,6 @@ internal class HendelseMediator(
         fødselsnummer: String,
         godkjent: Boolean,
         saksbehandlerident: String,
-        saksbehandleroid: UUID,
         saksbehandlerepost: String,
         godkjenttidspunkt: LocalDateTime,
         årsak: String?,
@@ -432,7 +430,6 @@ internal class HendelseMediator(
                 fødselsnummer,
                 godkjent,
                 saksbehandlerident,
-                saksbehandleroid,
                 saksbehandlerepost,
                 godkjenttidspunkt,
                 årsak,

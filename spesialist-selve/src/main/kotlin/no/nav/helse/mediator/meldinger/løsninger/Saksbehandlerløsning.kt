@@ -28,7 +28,6 @@ internal class Saksbehandlerløsning(
     private val json: String,
     godkjent: Boolean,
     saksbehandlerIdent: String,
-    oid: UUID,
     epostadresse: String,
     godkjenttidspunkt: LocalDateTime,
     årsak: String?,
@@ -45,7 +44,6 @@ internal class Saksbehandlerløsning(
         UtbetalingsgodkjenningCommand(
             godkjent,
             saksbehandlerIdent,
-            oid,
             epostadresse,
             godkjenttidspunkt,
             årsak,
@@ -75,7 +73,7 @@ internal class Saksbehandlerløsning(
                     validate {
                         it.demandValue("@event_name", "saksbehandler_løsning")
                         it.requireKey("@id", "fødselsnummer", "oppgaveId", "hendelseId")
-                        it.requireKey("godkjent", "saksbehandlerident", "saksbehandleroid", "saksbehandlerepost")
+                        it.requireKey("godkjent", "saksbehandlerident", "saksbehandlerepost")
                         it.require("godkjenttidspunkt", JsonNode::asLocalDateTime)
                         it.interestedIn("årsak", "begrunnelser", "kommentar")
                     }
@@ -97,7 +95,6 @@ internal class Saksbehandlerløsning(
                 packet["fødselsnummer"].asText(),
                 packet["godkjent"].asBoolean(),
                 packet["saksbehandlerident"].asText(),
-                UUID.fromString(packet["saksbehandleroid"].asText()),
                 packet["saksbehandlerepost"].asText(),
                 packet["godkjenttidspunkt"].asLocalDateTime(),
                 packet["årsak"].takeUnless(JsonNode::isMissingOrNull)?.asText(),

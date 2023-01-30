@@ -9,7 +9,6 @@ import java.util.*
 internal class UtbetalingsgodkjenningCommand(
     private val godkjent: Boolean,
     private val saksbehandlerIdent: String,
-    private val oid: UUID,
     private val epostadresse: String,
     private val godkjenttidspunkt: LocalDateTime,
     private val årsak: String?,

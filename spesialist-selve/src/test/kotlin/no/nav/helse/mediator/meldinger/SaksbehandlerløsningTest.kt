@@ -35,20 +35,19 @@ internal class SaksbehandlerløsningTest {
     private val godkjenningsbehov = UtbetalingsgodkjenningMessage(GODKJENNINGSBEHOV_JSON)
     private fun saksbehandlerløsning(godkjent: Boolean) = Saksbehandlerløsning(
         id = randomUUID(),
-        godkjenningsbehovhendelseId = GODKJENNINGSBEHOV_ID,
         fødselsnummer = FNR,
+        json = HENDELSE_JSON,
         godkjent = godkjent,
         saksbehandlerIdent = IDENT,
-        oid = randomUUID(),
         epostadresse = "saksbehandler@nav.no",
         godkjenttidspunkt = GODKJENTTIDSPUNKT,
         årsak = null,
         begrunnelser = null,
         kommentar = null,
         oppgaveId = OPPGAVE_ID,
-        json = HENDELSE_JSON,
-        oppgaveDao = mockk(relaxed = true),
+        godkjenningsbehovhendelseId = GODKJENNINGSBEHOV_ID,
         hendelseDao = hendelseDao,
+        oppgaveDao = mockk(relaxed = true),
         godkjenningMediator = GodkjenningMediator(mockk(relaxed = true), mockk(relaxed = true), mockk(), mockk(relaxed = true), mockk(relaxed = true)),
     )
 
