@@ -9,6 +9,7 @@ import io.ktor.server.auth.principal
 import io.ktor.server.request.ApplicationRequest
 import java.util.UUID
 import no.nav.helse.spesialist.api.SaksbehandlerTilganger
+import no.nav.helse.spesialist.api.saksbehandler.Saksbehandler
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -24,9 +25,9 @@ class ContextFactory(
     private val saksbehandlereMedTilgangTilStikkprøve: List<String>
 ) : GraphQLContextFactory<AuthorizedContext, ApplicationRequest> {
 
-    override suspend fun generateContextMap(request: ApplicationRequest): Map<String, Any> =
+    override suspend fun generateContextMap(request: ApplicationRequest): Map<GraphQLKonteksttype, Any> =
         mapOf(
-            "tilganger" to SaksbehandlerTilganger(
+            GraphQLKonteksttype.Tilganger to SaksbehandlerTilganger(
                 gruppetilganger = request.getGrupper(),
                 saksbehandlerIdent = request.getSaksbehandlerIdent(),
                 kode7Saksbehandlergruppe = kode7Saksbehandlergruppe,
@@ -35,7 +36,8 @@ class ContextFactory(
                 skjermedePersonerSaksbehandlergruppe = skjermedePersonerSaksbehandlergruppe,
                 saksbehandlereMedTilgangTilStikkprøve = saksbehandlereMedTilgangTilStikkprøve
             ),
-            "saksbehandlerNavn" to request.getSaksbehandlerName()
+            GraphQLKonteksttype.Saksbehandlernavn to request.getSaksbehandlerName(),
+            GraphQLKonteksttype.Saksbehandler to request.getSaksbehandler()
         )
 
     @Deprecated("The generic context object is deprecated in favor of the context map")
@@ -61,4 +63,9 @@ private fun ApplicationRequest.getSaksbehandlerName(): String {
 private fun ApplicationRequest.getSaksbehandlerIdent(): String {
     val accessToken = call.principal<JWTPrincipal>()
     return accessToken?.payload?.getClaim("NAVident")?.asString() ?: ""
+}
+
+private fun ApplicationRequest.getSaksbehandler(): Saksbehandler {
+    val accessToken = call.principal<JWTPrincipal>()
+    return accessToken?.let(Saksbehandler::fraOnBehalfOfToken) ?: throw IllegalAccessException("Mangler access token")
 }

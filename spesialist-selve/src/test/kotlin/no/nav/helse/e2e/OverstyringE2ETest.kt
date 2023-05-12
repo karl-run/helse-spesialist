@@ -19,6 +19,7 @@ import no.nav.helse.modell.overstyring.Subsumsjon
 import no.nav.helse.spesialist.api.SaksbehandlerTilganger
 import no.nav.helse.spesialist.api.arbeidsgiver.ArbeidsgiverApiDao
 import no.nav.helse.spesialist.api.egenAnsatt.EgenAnsattApiDao
+import no.nav.helse.spesialist.api.graphql.GraphQLKonteksttype
 import no.nav.helse.spesialist.api.graphql.query.PersonQuery
 import no.nav.helse.spesialist.api.graphql.schema.Arbeidsforholdoverstyring
 import no.nav.helse.spesialist.api.graphql.schema.Dagoverstyring
@@ -120,8 +121,8 @@ internal class OverstyringE2ETest : AbstractE2ETestV2() {
         håndterOverstyrInntektOgRefusjon()
         håndterOverstyrArbeidsforhold()
 
-        every { dataFetchingEnvironment.graphQlContext.get<String>("saksbehandlerNavn") } returns "saksbehandler"
-        every { dataFetchingEnvironment.graphQlContext.get<SaksbehandlerTilganger>("tilganger") } returns SAKSBEHANDLERTILGANGER_UTEN_TILGANGER
+        every { dataFetchingEnvironment.graphQlContext.get<String>(GraphQLKonteksttype.Saksbehandlernavn) } returns "saksbehandler"
+        every { dataFetchingEnvironment.graphQlContext.get<SaksbehandlerTilganger>(GraphQLKonteksttype.Tilganger) } returns SAKSBEHANDLERTILGANGER_UTEN_TILGANGER
 
         val nyUtbetalingId = UUID.randomUUID()
         fremTilSaksbehandleroppgave(harOppdatertMetadata = true, harRisikovurdering = true, utbetalingId = nyUtbetalingId)

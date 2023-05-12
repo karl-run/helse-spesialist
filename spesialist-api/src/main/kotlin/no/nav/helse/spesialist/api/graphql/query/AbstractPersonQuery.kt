@@ -6,6 +6,7 @@ import graphql.GraphqlErrorException
 import graphql.schema.DataFetchingEnvironment
 import no.nav.helse.spesialist.api.SaksbehandlerTilganger
 import no.nav.helse.spesialist.api.egenAnsatt.EgenAnsattApiDao
+import no.nav.helse.spesialist.api.graphql.GraphQLKonteksttype
 import no.nav.helse.spesialist.api.person.Adressebeskyttelse
 import no.nav.helse.spesialist.api.person.PersonApiDao
 
@@ -15,7 +16,7 @@ abstract class AbstractPersonQuery(
 ) : Query {
 
     protected fun isForbidden(fnr: String, env: DataFetchingEnvironment): Boolean {
-        val tilganger = env.graphQlContext.get<SaksbehandlerTilganger>("tilganger")
+        val tilganger = env.graphQlContext.get<SaksbehandlerTilganger>(GraphQLKonteksttype.Tilganger)
         val kanSeSkjermede = tilganger.harTilgangTilSkjermedePersoner()
         val erSkjermet = egenAnsattApiDao.erEgenAnsatt(fnr) ?: return true
         if (erSkjermet && !kanSeSkjermede) return true

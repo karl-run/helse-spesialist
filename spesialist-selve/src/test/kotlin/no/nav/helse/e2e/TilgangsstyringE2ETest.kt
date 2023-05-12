@@ -28,6 +28,7 @@ import no.nav.helse.Testdata.UTBETALING_ID
 import no.nav.helse.Testdata.VEDTAKSPERIODE_ID
 import no.nav.helse.januar
 import no.nav.helse.spesialist.api.SaksbehandlerTilganger
+import no.nav.helse.spesialist.api.graphql.GraphQLKonteksttype
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
@@ -148,12 +149,12 @@ internal class TilgangsstyringE2ETest : AbstractE2ETest() {
 
     private fun settOppDefaultDataOgTilganger() {
         every { snapshotClient.hentSnapshot(FØDSELSNUMMER) } returns SNAPSHOT_MED_WARNINGS
-        every { dataFetchingEnvironment.graphQlContext.get<String>("saksbehandlerNavn") } returns "saksbehandler"
+        every { dataFetchingEnvironment.graphQlContext.get<String>(GraphQLKonteksttype.Saksbehandlernavn) } returns "saksbehandler"
         saksbehandlertilgangTilSkjermede(harTilgang = false)
     }
 
     private fun saksbehandlertilgangTilSkjermede(harTilgang: Boolean) {
-        every { dataFetchingEnvironment.graphQlContext.get<SaksbehandlerTilganger>("tilganger") } returns mockk(relaxed = true) {
+        every { dataFetchingEnvironment.graphQlContext.get<SaksbehandlerTilganger>(GraphQLKonteksttype.Tilganger) } returns mockk(relaxed = true) {
             every { harTilgangTilSkjermedePersoner() } returns harTilgang
         }
     }
