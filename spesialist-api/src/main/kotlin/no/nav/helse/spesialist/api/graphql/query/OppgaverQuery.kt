@@ -10,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.nav.helse.spesialist.api.SaksbehandlerTilganger
 import no.nav.helse.spesialist.api.graphql.GraphQLKonteksttype
+import no.nav.helse.spesialist.api.graphql.get
 import no.nav.helse.spesialist.api.graphql.schema.FerdigstiltOppgave
 import no.nav.helse.spesialist.api.graphql.schema.OppgaveForOversiktsvisning
 import no.nav.helse.spesialist.api.graphql.schema.tilFerdigstilteOppgaver
@@ -43,7 +44,7 @@ class OppgaverQuery(private val oppgaveApiDao: OppgaveApiDao) : Query {
     @Suppress("unused")
     suspend fun alleOppgaver(env: DataFetchingEnvironment): DataFetcherResult<List<OppgaveForOversiktsvisning>> {
         val start = startSporing(env)
-        val tilganger = env.graphQlContext.get<SaksbehandlerTilganger>(GraphQLKonteksttype.Tilganger)
+        val tilganger = env.get<SaksbehandlerTilganger>(GraphQLKonteksttype.Tilganger)
         val oppgaver = withContext(Dispatchers.IO) {
             oppgaveApiDao.finnOppgaver(tilganger)
         }
@@ -53,7 +54,7 @@ class OppgaverQuery(private val oppgaveApiDao: OppgaveApiDao) : Query {
     }
 
     private fun startSporing(env: DataFetchingEnvironment): Long {
-        val hvem = env.graphQlContext.get<String>(GraphQLKonteksttype.Saksbehandlernavn)
+        val hvem = env.get<String>(GraphQLKonteksttype.Saksbehandlernavn)
         sikkerLogg.trace("Henter oppgaver for $hvem")
         return System.nanoTime()
     }

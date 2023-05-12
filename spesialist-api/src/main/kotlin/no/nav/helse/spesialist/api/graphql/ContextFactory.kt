@@ -4,6 +4,7 @@ package no.nav.helse.spesialist.api.graphql
 
 import com.expediagroup.graphql.generator.execution.GraphQLContext
 import com.expediagroup.graphql.server.execution.GraphQLContextFactory
+import graphql.schema.DataFetchingEnvironment
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.principal
 import io.ktor.server.request.ApplicationRequest
@@ -68,4 +69,8 @@ private fun ApplicationRequest.getSaksbehandlerIdent(): String {
 private fun ApplicationRequest.getSaksbehandler(): Saksbehandler {
     val accessToken = call.principal<JWTPrincipal>()
     return accessToken?.let(Saksbehandler::fraOnBehalfOfToken) ?: throw IllegalAccessException("Mangler access token")
+}
+
+fun <T> DataFetchingEnvironment.get(konteksttype: GraphQLKonteksttype): T {
+    return graphQlContext.get(konteksttype)
 }

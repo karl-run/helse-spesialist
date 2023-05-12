@@ -11,6 +11,7 @@ import net.logstash.logback.argument.StructuredArguments.keyValue
 import no.nav.helse.spesialist.api.arbeidsgiver.ArbeidsgiverApiDao
 import no.nav.helse.spesialist.api.egenAnsatt.EgenAnsattApiDao
 import no.nav.helse.spesialist.api.graphql.GraphQLKonteksttype
+import no.nav.helse.spesialist.api.graphql.get
 import no.nav.helse.spesialist.api.graphql.schema.Person
 import no.nav.helse.spesialist.api.notat.NotatDao
 import no.nav.helse.spesialist.api.oppgave.OppgaveApiDao
@@ -51,7 +52,7 @@ class PersonQuery(
             return DataFetcherResult.newResult<Person?>().error(getBadRequestError()).build()
         }
 
-        val saksbehandlerNavn = env.graphQlContext.get<String>(GraphQLKonteksttype.Saksbehandlernavn)
+        val saksbehandlerNavn = env.get<String>(GraphQLKonteksttype.Saksbehandlernavn)
         val ident = fnr ?: aktorId
         sikkerLogg.info("$saksbehandlerNavn is doing lookup with params: $ident")
 
@@ -99,7 +100,7 @@ class PersonQuery(
                 notatDao = notatDao,
                 totrinnsvurderingApiDao = totrinnsvurderingApiDao,
                 reservasjonClient = reservasjonClient,
-                tilganger = env.graphQlContext.get(GraphQLKonteksttype.Tilganger),
+                tilganger = env.get(GraphQLKonteksttype.Tilganger),
             )
         }
 
