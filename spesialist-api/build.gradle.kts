@@ -13,6 +13,7 @@ dependencies {
     api("com.nimbusds:nimbus-jose-jwt:9.31")
     api("io.ktor:ktor-server-double-receive:$ktorVersion")
     implementation(project(":spesialist-felles"))
+    testImplementation(testFixtures(project(":spesialist-felles")))
     implementation("com.expediagroup:graphql-kotlin-server:$graphQLKotlinVersion")
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
     testImplementation("io.ktor:ktor-server-netty:$ktorVersion")

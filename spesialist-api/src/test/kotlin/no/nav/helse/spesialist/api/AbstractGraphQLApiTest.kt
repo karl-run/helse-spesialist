@@ -28,12 +28,16 @@ import io.mockk.mockk
 import java.net.ServerSocket
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
+import no.nav.helse.Gruppe
+import no.nav.helse.Tilgangsgrupper
+import no.nav.helse.idForGruppe
 import no.nav.helse.spesialist.api.behandlingsstatistikk.BehandlingsstatistikkMediator
 import no.nav.helse.spesialist.api.graphql.ContextFactory
 import no.nav.helse.spesialist.api.graphql.RequestParser
 import no.nav.helse.spesialist.api.graphql.SchemaBuilder
 import no.nav.helse.spesialist.api.graphql.queryHandler
 import no.nav.helse.spesialist.api.reservasjon.ReservasjonClient
+import no.nav.helse.testEnv
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -42,13 +46,6 @@ import io.ktor.server.plugins.contentnegotiation.ContentNegotiation as ContentNe
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal abstract class AbstractGraphQLApiTest : DatabaseIntegrationTest() {
-
-    protected val riskSaksbehandlergruppe: UUID = UUID.randomUUID()
-    protected val kode7Saksbehandlergruppe: UUID = UUID.randomUUID()
-    protected val skjermedePersonerGruppeId: UUID = UUID.randomUUID()
-    protected val beslutterGruppeId: UUID = UUID.randomUUID()
-    protected val saksbehandlereMedTilgangTilStikkprøver: List<String> = listOf("EN_IDENT")
-
 
     private val reservasjonClient = mockk<ReservasjonClient>(relaxed = true)
     private val behandlingsstatistikkMediator = mockk<BehandlingsstatistikkMediator>(relaxed = true)
@@ -79,13 +76,7 @@ internal abstract class AbstractGraphQLApiTest : DatabaseIntegrationTest() {
 
         graphQLServer = GraphQLServer(
             requestParser = RequestParser(),
-            contextFactory = ContextFactory(
-                kode7Saksbehandlergruppe,
-                skjermedePersonerGruppeId,
-                beslutterGruppeId,
-                riskSaksbehandlergruppe,
-                saksbehandlereMedTilgangTilStikkprøver
-            ),
+            contextFactory = ContextFactory(Tilgangsgrupper(testEnv)),
             requestHandler = GraphQLRequestHandler(
                 GraphQL.newGraphQL(schema).build()
             )
@@ -205,12 +196,12 @@ internal abstract class AbstractGraphQLApiTest : DatabaseIntegrationTest() {
         }
     }
 
-    protected fun runQuery(@Language("GraphQL") query: String, group: UUID? = null): JsonNode {
+    protected fun runQuery(@Language("GraphQL") query: String, group: Gruppe? = null): JsonNode {
         val response = runBlocking {
             client.post("/graphql") {
                 contentType(ContentType.Application.Json)
                 accept(ContentType.Application.Json)
-                authentication(UUID.randomUUID(), group = group?.toString())
+                authentication(UUID.randomUUID(), group = group?.let { idForGruppe(group) } )
                 setBody(mapOf("query" to query))
             }.body<String>()
         }

@@ -22,6 +22,7 @@ import java.time.format.DateTimeFormatter
 import java.util.UUID
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import no.nav.helse.Tilgangsgrupper
 import no.nav.helse.spesialist.api.JwtStub
 import no.nav.helse.spesialist.api.TestApplication
 import no.nav.helse.spesialist.api.arbeidsgiver.ArbeidsgiverApiDao
@@ -69,6 +70,7 @@ import no.nav.helse.spesialist.api.utbetaling.UtbetalingApiDao
 import no.nav.helse.spesialist.api.varsel.ApiVarselRepository
 import no.nav.helse.spesialist.api.vedtaksperiode.EnhetDto
 import no.nav.helse.spesialist.api.vedtaksperiode.VarselDao
+import no.nav.helse.testEnv
 
 fun main() = runBlocking {
     val jwtStub = JwtStub()
@@ -169,13 +171,9 @@ fun main() = runBlocking {
             notatDao = notatDao,
             totrinnsvurderingApiDao = totrinnsvurderingApiDao,
             reservasjonClient = reservasjonClient,
-            skjermedePersonerGruppeId = UUID.randomUUID(),
-            kode7Saksbehandlergruppe = UUID.randomUUID(),
-            beslutterGruppeId = UUID.randomUUID(),
-            riskGruppeId = UUID.randomUUID(),
+            tilgangsgrupper = Tilgangsgrupper(testEnv),
             snapshotMediator = SnapshotMediator(snapshotApiDao, mockk(relaxed = true)),
             behandlingsstatistikkMediator = behandlingsstatistikkMediator,
-            saksbehandlereMedTilgangTilStikkprøve = listOf("EN_IDENT")
         )
     }
 }

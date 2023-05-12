@@ -8,9 +8,9 @@ import javax.sql.DataSource
 import kotliquery.Row
 import kotliquery.queryOf
 import kotliquery.sessionOf
+import no.nav.helse.Gruppe
 import no.nav.helse.HelseDao
-import no.nav.helse.spesialist.api.SaksbehandlerTilganger
-import no.nav.helse.spesialist.api.Toggle
+import no.nav.helse.felles.ApiTilgangskontroll
 import no.nav.helse.spesialist.api.graphql.schema.Boenhet
 import no.nav.helse.spesialist.api.graphql.schema.DateString
 import no.nav.helse.spesialist.api.graphql.schema.InntektFraAOrdningen
@@ -114,7 +114,7 @@ class OppgaveApiDao(private val dataSource: DataSource) : HelseDao(dataSource) {
                 }
         } ?: emptyList()
 
-    fun finnOppgaver(tilganger: SaksbehandlerTilganger): List<OppgaveForOversiktsvisning> =
+    fun finnOppgaver(tilganger: ApiTilgangskontroll): List<OppgaveForOversiktsvisning> =
         sessionOf(dataSource).use { session ->
             // bruk av const direkte i @Language-annotert sql fører til snodige fantom-compile-feil i IntelliJ
             val beslutterOppgaveHackyWorkaround = BESLUTTEROPPGAVE_PREFIX
@@ -162,10 +162,10 @@ class OppgaveApiDao(private val dataSource: DataSource) : HelseDao(dataSource) {
                 ;
             """
             val parameters = mapOf(
-                "harTilgangTilRisk" to tilganger.harTilgangTilRiskOppgaver(),
-                "harTilgangTilKode7" to tilganger.harTilgangTilKode7(),
-                "harTilgangTilBeslutter" to tilganger.harTilgangTilBeslutterOppgaver(),
-                "harTilgangTilStikkprove" to tilganger.hartilgangTilStikkprøve()
+                "harTilgangTilRisk" to tilganger.harTilgangTil(Gruppe.RISK_QA),
+                "harTilgangTilKode7" to tilganger.harTilgangTil(Gruppe.KODE7),
+                "harTilgangTilBeslutter" to tilganger.harTilgangTil(Gruppe.BESLUTTER),
+                "harTilgangTilStikkprove" to tilganger.harTilgangTil(Gruppe.STIKKPRØVE)
             )
             session.run(
                 queryOf(query, parameters)

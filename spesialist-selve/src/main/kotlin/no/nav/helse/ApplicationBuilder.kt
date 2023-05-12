@@ -302,11 +302,7 @@ internal class ApplicationBuilder(env: Map<String, String>) : RapidsConnection.S
                 notatDao = notatDao,
                 totrinnsvurderingApiDao = totrinnsvurderingApiDao,
                 reservasjonClient = reservasjonClient,
-                skjermedePersonerGruppeId = tilgangsgrupper.skjermedePersonerGruppeId,
-                kode7Saksbehandlergruppe = tilgangsgrupper.kode7GruppeId,
-                beslutterGruppeId = tilgangsgrupper.beslutterGruppeId,
-                riskGruppeId = tilgangsgrupper.riskQaGruppeId,
-                saksbehandlereMedTilgangTilStikkprøve = saksbehandlereMedTilgangTilStikkprøver,
+                tilgangsgrupper = tilgangsgrupper,
                 snapshotMediator = snapshotMediator,
                 behandlingsstatistikkMediator = behandlingsstatistikkMediator,
             )

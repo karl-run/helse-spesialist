@@ -14,6 +14,7 @@ import io.ktor.server.routing.post
 import io.ktor.util.pipeline.PipelineContext
 import java.util.UUID
 import no.nav.helse.Tilgangsgrupper
+import no.nav.helse.felles.tilganger
 import no.nav.helse.mediator.HendelseMediator
 import no.nav.helse.modell.tildeling.TildelingService
 import no.nav.helse.modell.totrinnsvurdering.TotrinnsvurderingMediator

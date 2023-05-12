@@ -1,6 +1,7 @@
 package no.nav.helse.spesialist.api.graphql.query
 
 import java.time.LocalDateTime
+import no.nav.helse.Gruppe
 import no.nav.helse.spesialist.api.AbstractGraphQLApiTest
 import no.nav.helse.spesialist.api.oppgave.Oppgavestatus
 import no.nav.helse.spesialist.api.oppgave.Oppgavetype
@@ -27,7 +28,7 @@ internal class OppgaverQueryTest : AbstractGraphQLApiTest() {
     fun `saksbehandlere som er medlemmer av kode7 får kode7-oppgaver`() {
         opprettVedtaksperiode(opprettPerson(adressebeskyttelse = Adressebeskyttelse.Fortrolig), opprettArbeidsgiver())
 
-        val body = runQuery("""{ alleOppgaver { type } }""", kode7Saksbehandlergruppe)
+        val body = runQuery("""{ alleOppgaver { type } }""", Gruppe.KODE7)
         val antallOppgaver = body["data"]["alleOppgaver"].size()
 
         assertEquals(1, antallOppgaver)
@@ -52,7 +53,7 @@ internal class OppgaverQueryTest : AbstractGraphQLApiTest() {
         opprettOppgave(Oppgavestatus.AvventerSaksbehandler, Oppgavetype.SØKNAD, vedtakRef)
         opprettOppgave(Oppgavestatus.AvventerSaksbehandler, Oppgavetype.RISK_QA, vedtakRef)
 
-        val body = runQuery("""{ alleOppgaver { type } }""", riskSaksbehandlergruppe)
+        val body = runQuery("""{ alleOppgaver { type } }""", Gruppe.RISK_QA)
         val oppgaver = body["data"]["alleOppgaver"]
 
         assertEquals(3, oppgaver.size())

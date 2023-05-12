@@ -12,6 +12,7 @@ import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.nav.helse.Tilgangsgrupper
+import no.nav.helse.felles.tilganger
 import no.nav.helse.modell.tildeling.TildelingService
 import no.nav.helse.spesialist.api.feilhåndtering.modellfeilForRest
 import org.slf4j.LoggerFactory

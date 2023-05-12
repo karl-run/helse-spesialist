@@ -4,7 +4,8 @@ import com.expediagroup.graphql.generator.annotations.GraphQLIgnore
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.JsonNode
 import java.util.UUID
-import no.nav.helse.spesialist.api.SaksbehandlerTilganger
+import no.nav.helse.Gruppe
+import no.nav.helse.felles.ApiTilgangskontroll
 import no.nav.helse.spesialist.api.graphql.enums.GraphQLInntektstype
 import no.nav.helse.spesialist.api.graphql.enums.GraphQLPeriodetilstand
 import no.nav.helse.spesialist.api.graphql.enums.GraphQLPeriodetype
@@ -353,7 +354,7 @@ data class BeregnetPeriode(
     private val periodehistorikkDao: PeriodehistorikkDao,
     private val notatDao: NotatDao,
     private val totrinnsvurderingApiDao: TotrinnsvurderingApiDao,
-    private val tilganger: SaksbehandlerTilganger,
+    private val tilganger: ApiTilgangskontroll,
     private val erSisteGenerasjon: Boolean,
 ) : Periode {
     override fun erForkastet(): Boolean = erForkastet(periode)
@@ -372,7 +373,7 @@ data class BeregnetPeriode(
             listOf(Handling(Periodehandling.UTBETALE, false, "perioden er ikke til godkjenning")
         ) else {
             val oppgavetype = oppgaveApiDao.finnOppgavetype(UUID.fromString(vedtaksperiodeId()))
-            if (oppgavetype == Oppgavetype.RISK_QA && !tilganger.harTilgangTilRiskOppgaver())
+            if (oppgavetype == Oppgavetype.RISK_QA && !tilganger.harTilgangTil(Gruppe.RISK_QA))
                 listOf(Handling(Periodehandling.UTBETALE, false, "IkkeTilgangTilRisk"))
             else listOf(Handling(Periodehandling.UTBETALE, true))
         }

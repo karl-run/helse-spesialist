@@ -3,9 +3,9 @@ package no.nav.helse.e2e
 import AbstractE2ETest
 import graphql.GraphQLError
 import io.mockk.every
-import io.mockk.mockk
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
+import no.nav.helse.Gruppe
 import no.nav.helse.Meldingssender.sendAktivitetsloggNyAktivitet
 import no.nav.helse.Meldingssender.sendArbeidsforholdløsningOld
 import no.nav.helse.Meldingssender.sendArbeidsgiverinformasjonløsningOld
@@ -26,8 +26,8 @@ import no.nav.helse.Testdata.ORGNR
 import no.nav.helse.Testdata.SNAPSHOT_MED_WARNINGS
 import no.nav.helse.Testdata.UTBETALING_ID
 import no.nav.helse.Testdata.VEDTAKSPERIODE_ID
+import no.nav.helse.felles.ApiTilgangskontroll
 import no.nav.helse.januar
-import no.nav.helse.spesialist.api.SaksbehandlerTilganger
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
@@ -153,9 +153,8 @@ internal class TilgangsstyringE2ETest : AbstractE2ETest() {
     }
 
     private fun saksbehandlertilgangTilSkjermede(harTilgang: Boolean) {
-        every { dataFetchingEnvironment.graphQlContext.get<SaksbehandlerTilganger>("tilganger") } returns mockk(relaxed = true) {
-            every { harTilgangTilSkjermedePersoner() } returns harTilgang
-        }
+        every { dataFetchingEnvironment.graphQlContext.get<ApiTilgangskontroll>("tilganger") } returns
+                { gruppe -> gruppe == Gruppe.SKJERMEDE && harTilgang }
     }
 
     companion object {

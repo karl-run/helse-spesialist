@@ -2,6 +2,7 @@ package no.nav.helse
 
 import com.expediagroup.graphql.client.types.GraphQLClientResponse
 import java.util.UUID
+import no.nav.helse.felles.ApiTilgangskontroll
 import no.nav.helse.spesialist.api.graphql.HentSnapshot
 import no.nav.helse.spesialist.api.graphql.enums.GraphQLInntektstype
 import no.nav.helse.spesialist.api.graphql.enums.GraphQLPeriodetilstand
@@ -31,16 +32,7 @@ object Testdata {
     val SAKSBEHANDLER_OID: UUID = UUID.randomUUID()
     const val SAKSBEHANDLER_IDENT = "X999999"
     const val SAKSBEHANDLER_NAVN = "Sara Saksbehandler"
-    val SAKSBEHANDLERTILGANGER_UTEN_TILGANGER =
-        no.nav.helse.spesialist.api.SaksbehandlerTilganger(
-            gruppetilganger = emptyList(),
-            saksbehandlerIdent = SAKSBEHANDLER_IDENT,
-            kode7Saksbehandlergruppe = UUID.randomUUID(),
-            riskSaksbehandlergruppe = UUID.randomUUID(),
-            beslutterSaksbehandlergruppe = UUID.randomUUID(),
-            skjermedePersonerSaksbehandlergruppe = UUID.randomUUID(),
-            saksbehandlereMedTilgangTilStikkprøve = emptyList()
-        )
+    val SAKSBEHANDLERTILGANGER_UTEN_TILGANGER = ApiTilgangskontroll { false }
     internal val UTBETALING_ID = UUID.randomUUID()
 
     const val VARSEL_KODE_1 = "VARSEL_KODE_1"

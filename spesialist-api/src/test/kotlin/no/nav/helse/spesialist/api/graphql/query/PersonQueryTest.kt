@@ -7,6 +7,7 @@ import io.mockk.clearMocks
 import io.mockk.every
 import java.time.LocalDate
 import java.util.UUID
+import no.nav.helse.Gruppe
 import no.nav.helse.spesialist.api.AbstractGraphQLApiTest
 import no.nav.helse.spesialist.api.graphql.enums.GraphQLPeriodetilstand
 import no.nav.helse.spesialist.api.graphql.hentsnapshot.GraphQLBeregnetPeriode
@@ -71,7 +72,7 @@ internal class PersonQueryTest : AbstractGraphQLApiTest() {
         mockSnapshot()
         opprettVedtaksperiode(opprettPerson(adressebeskyttelse = Adressebeskyttelse.Fortrolig), opprettArbeidsgiver())
 
-        val body = runQuery("""{ person(fnr: "$FØDSELSNUMMER") { aktorId } }""", kode7Saksbehandlergruppe)
+        val body = runQuery("""{ person(fnr: "$FØDSELSNUMMER") { aktorId } }""", Gruppe.KODE7)
 
         assertEquals(AKTØRID, body["data"]["person"]["aktorId"].asText())
     }
@@ -91,7 +92,7 @@ internal class PersonQueryTest : AbstractGraphQLApiTest() {
         every { egenAnsattApiDao.erEgenAnsatt(FØDSELSNUMMER) } returns true
         opprettVedtaksperiode(opprettPerson(), opprettArbeidsgiver())
 
-        val body = runQuery("""{ person(fnr: "$FØDSELSNUMMER") { aktorId } }""", skjermedePersonerGruppeId)
+        val body = runQuery("""{ person(fnr: "$FØDSELSNUMMER") { aktorId } }""", Gruppe.SKJERMEDE)
 
         assertEquals(AKTØRID, body["data"]["person"]["aktorId"].asText())
     }
@@ -242,14 +243,14 @@ internal class PersonQueryTest : AbstractGraphQLApiTest() {
         val arbeidsgiver = opprettSnapshotArbeidsgiver(listOf(snapshotGenerasjon))
         mockSnapshot(arbeidsgivere = listOf(arbeidsgiver))
 
-        val body = runPersonQuery(riskSaksbehandlergruppe)
+        val body = runPersonQuery(Gruppe.RISK_QA)
 
         val periode = body["data"]["person"]["arbeidsgivere"].first()["generasjoner"].first()["perioder"].first()
         assertFalse(periode["handlinger"].isEmpty)
         assertTrue(periode["handlinger"].first { it["type"].textValue() == Periodehandling.UTBETALE.name }["tillatt"].booleanValue())
     }
 
-    private fun runPersonQuery(group: UUID? = null) = runQuery(
+    private fun runPersonQuery(group: Gruppe? = null) = runQuery(
         """{ 
                 person(fnr: "$FØDSELSNUMMER") { 
                     aktorId

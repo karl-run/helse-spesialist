@@ -3,7 +3,7 @@ package no.nav.helse.modell.tildeling
 import java.util.UUID
 import no.nav.helse.Gruppe
 import no.nav.helse.mediator.HendelseMediator
-import no.nav.helse.mediator.api.ApiTilgangskontroll
+import no.nav.helse.felles.ApiTilgangskontroll
 import no.nav.helse.modell.totrinnsvurdering.TotrinnsvurderingMediator
 import no.nav.helse.spesialist.api.feilhåndtering.OppgaveAlleredeTildelt
 import no.nav.helse.spesialist.api.saksbehandler.SaksbehandlerDao

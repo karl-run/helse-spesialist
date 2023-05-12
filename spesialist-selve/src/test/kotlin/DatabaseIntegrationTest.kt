@@ -9,6 +9,8 @@ import java.util.UUID
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.AbstractDatabaseTest
+import no.nav.helse.Gruppe
+import no.nav.helse.felles.ApiTilgangskontroll
 import no.nav.helse.januar
 import no.nav.helse.mediator.FeilendeMeldingerDao
 import no.nav.helse.mediator.meldinger.løsninger.Inntekter
@@ -40,7 +42,6 @@ import no.nav.helse.modell.vedtaksperiode.Periode
 import no.nav.helse.modell.vedtaksperiode.Periodetype
 import no.nav.helse.modell.vedtaksperiode.Periodetype.FØRSTEGANGSBEHANDLING
 import no.nav.helse.modell.vergemal.VergemålDao
-import no.nav.helse.spesialist.api.SaksbehandlerTilganger
 import no.nav.helse.spesialist.api.abonnement.AbonnementDao
 import no.nav.helse.spesialist.api.abonnement.OpptegnelseDao
 import no.nav.helse.spesialist.api.arbeidsgiver.ArbeidsgiverApiDao
@@ -106,56 +107,11 @@ abstract class DatabaseIntegrationTest : AbstractDatabaseTest() {
         internal const val SAKSBEHANDLER_IDENT = "Z999999"
     }
 
-    private val KODE7_GRUPPE_ID = UUID.randomUUID()
-    private val RISK_GRUPPE_ID = UUID.randomUUID()
-    private val BESLUTTER_GRUPPE_ID = UUID.randomUUID()
-    private val SKJERMEDE_PERSONER_GRUPPE_ID = UUID.randomUUID()
-
-    protected val SAKSBEHANDLERTILGANGER_MED_INGEN = SaksbehandlerTilganger(
-        gruppetilganger = emptyList(),
-        kode7Saksbehandlergruppe = KODE7_GRUPPE_ID,
-        riskSaksbehandlergruppe = RISK_GRUPPE_ID,
-        beslutterSaksbehandlergruppe = BESLUTTER_GRUPPE_ID,
-        skjermedePersonerSaksbehandlergruppe = SKJERMEDE_PERSONER_GRUPPE_ID,
-        saksbehandlerIdent = SAKSBEHANDLER_IDENT,
-        saksbehandlereMedTilgangTilStikkprøve = emptyList()
-    )
-    protected val SAKSBEHANDLERTILGANGER_MED_KODE7 = SaksbehandlerTilganger(
-        gruppetilganger = listOf(KODE7_GRUPPE_ID),
-        kode7Saksbehandlergruppe = KODE7_GRUPPE_ID,
-        riskSaksbehandlergruppe = RISK_GRUPPE_ID,
-        beslutterSaksbehandlergruppe = BESLUTTER_GRUPPE_ID,
-        skjermedePersonerSaksbehandlergruppe = SKJERMEDE_PERSONER_GRUPPE_ID,
-        saksbehandlerIdent = SAKSBEHANDLER_IDENT,
-        saksbehandlereMedTilgangTilStikkprøve = emptyList()
-    )
-    protected val SAKSBEHANDLERTILGANGER_MED_RISK = SaksbehandlerTilganger(
-        gruppetilganger = listOf(RISK_GRUPPE_ID),
-        kode7Saksbehandlergruppe = KODE7_GRUPPE_ID,
-        riskSaksbehandlergruppe = RISK_GRUPPE_ID,
-        beslutterSaksbehandlergruppe = BESLUTTER_GRUPPE_ID,
-        skjermedePersonerSaksbehandlergruppe = SKJERMEDE_PERSONER_GRUPPE_ID,
-        saksbehandlerIdent = SAKSBEHANDLER_IDENT,
-        saksbehandlereMedTilgangTilStikkprøve = emptyList()
-    )
-    protected val SAKSBEHANDLERTILGANGER_MED_BESLUTTER = SaksbehandlerTilganger(
-        gruppetilganger = listOf(BESLUTTER_GRUPPE_ID),
-        kode7Saksbehandlergruppe = KODE7_GRUPPE_ID,
-        riskSaksbehandlergruppe = RISK_GRUPPE_ID,
-        beslutterSaksbehandlergruppe = BESLUTTER_GRUPPE_ID,
-        skjermedePersonerSaksbehandlergruppe = SKJERMEDE_PERSONER_GRUPPE_ID,
-        saksbehandlerIdent = SAKSBEHANDLER_IDENT,
-        saksbehandlereMedTilgangTilStikkprøve = emptyList()
-    )
-    protected val SAKSBEHANDLERTILGANGER_MED_STIKKPRØVE = SaksbehandlerTilganger(
-        gruppetilganger = emptyList(),
-        kode7Saksbehandlergruppe = KODE7_GRUPPE_ID,
-        riskSaksbehandlergruppe = RISK_GRUPPE_ID,
-        beslutterSaksbehandlergruppe = BESLUTTER_GRUPPE_ID,
-        skjermedePersonerSaksbehandlergruppe = SKJERMEDE_PERSONER_GRUPPE_ID,
-        saksbehandlerIdent = SAKSBEHANDLER_IDENT,
-        saksbehandlereMedTilgangTilStikkprøve = listOf(SAKSBEHANDLER_IDENT)
-    )
+    protected val SAKSBEHANDLERTILGANGER_MED_INGEN = ApiTilgangskontroll { false }
+    protected val SAKSBEHANDLERTILGANGER_MED_KODE7 = ApiTilgangskontroll { gruppe -> gruppe == Gruppe.KODE7 }
+    protected val SAKSBEHANDLERTILGANGER_MED_RISK = ApiTilgangskontroll { gruppe -> gruppe == Gruppe.RISK_QA }
+    protected val SAKSBEHANDLERTILGANGER_MED_BESLUTTER = ApiTilgangskontroll { gruppe -> gruppe == Gruppe.BESLUTTER }
+    protected val SAKSBEHANDLERTILGANGER_MED_STIKKPRØVE = ApiTilgangskontroll { gruppe -> gruppe == Gruppe.STIKKPRØVE }
 
     internal var personId: Long = -1
         private set

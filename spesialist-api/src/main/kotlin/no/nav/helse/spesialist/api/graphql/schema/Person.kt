@@ -2,7 +2,7 @@ package no.nav.helse.spesialist.api.graphql.schema
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.module.kotlin.readValue
-import no.nav.helse.spesialist.api.SaksbehandlerTilganger
+import no.nav.helse.felles.ApiTilgangskontroll
 import no.nav.helse.spesialist.api.arbeidsgiver.ArbeidsgiverApiDao
 import no.nav.helse.spesialist.api.graphql.hentsnapshot.GraphQLGhostPeriode
 import no.nav.helse.spesialist.api.graphql.hentsnapshot.GraphQLPerson
@@ -66,7 +66,7 @@ data class Person(
     private val notatDao: NotatDao,
     private val totrinnsvurderingApiDao: TotrinnsvurderingApiDao,
     private val reservasjonClient: ReservasjonClient,
-    private val tilganger: SaksbehandlerTilganger,
+    private val tilganger: ApiTilgangskontroll,
 ) {
     fun versjon(): Int = snapshot.versjon
 

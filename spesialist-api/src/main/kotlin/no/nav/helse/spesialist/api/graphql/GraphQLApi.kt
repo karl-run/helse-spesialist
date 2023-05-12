@@ -16,7 +16,7 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import java.time.Duration
-import java.util.UUID
+import no.nav.helse.Tilgangsgrupper
 import no.nav.helse.spesialist.api.GraphQLMetrikker
 import no.nav.helse.spesialist.api.arbeidsgiver.ArbeidsgiverApiDao
 import no.nav.helse.spesialist.api.behandlingsstatistikk.BehandlingsstatistikkMediator
@@ -53,11 +53,7 @@ fun Application.graphQLApi(
     notatDao: NotatDao,
     totrinnsvurderingApiDao: TotrinnsvurderingApiDao,
     reservasjonClient: ReservasjonClient,
-    skjermedePersonerGruppeId: UUID,
-    kode7Saksbehandlergruppe: UUID,
-    beslutterGruppeId: UUID,
-    riskGruppeId: UUID,
-    saksbehandlereMedTilgangTilStikkprøve: List<String>,
+    tilgangsgrupper: Tilgangsgrupper,
     snapshotMediator: SnapshotMediator,
     behandlingsstatistikkMediator: BehandlingsstatistikkMediator,
 ) {
@@ -82,13 +78,7 @@ fun Application.graphQLApi(
 
     val server = GraphQLServer(
         requestParser = RequestParser(),
-        contextFactory = ContextFactory(
-            kode7Saksbehandlergruppe = kode7Saksbehandlergruppe,
-            skjermedePersonerSaksbehandlergruppe = skjermedePersonerGruppeId,
-            beslutterSaksbehandlergruppe = beslutterGruppeId,
-            riskSaksbehandlergruppe = riskGruppeId,
-            saksbehandlereMedTilgangTilStikkprøve = saksbehandlereMedTilgangTilStikkprøve
-        ),
+        contextFactory = ContextFactory(tilgangsgrupper),
         requestHandler = LoggingGraphQLRequestHandler(
             GraphQL.newGraphQL(schema).build()
         )

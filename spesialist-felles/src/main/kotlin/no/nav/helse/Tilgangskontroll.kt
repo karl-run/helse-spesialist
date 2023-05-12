@@ -8,7 +8,8 @@ enum class Gruppe(private val gruppenøkkel: String) {
     RISK_QA("RISK_SUPERSAKSBEHANDLER_GROUP"),
     KODE7("KODE7_SAKSBEHANDLER_GROUP"),
     BESLUTTER("BESLUTTER_SAKSBEHANDLER_GROUP"),
-    SKJERMEDE("SKJERMEDE_PERSONER_GROUP");
+    SKJERMEDE("SKJERMEDE_PERSONER_GROUP"),
+    STIKKPRØVE("STIKKPRØVER_GROUP");
 
     fun idFra(env: Map<String, String>): UUID = UUID.fromString(env.getValue(gruppenøkkel))
 
@@ -17,12 +18,7 @@ enum class Gruppe(private val gruppenøkkel: String) {
     }
 }
 
-internal class Tilgangsgrupper(private val env: Map<String, String>) {
-    val kode7GruppeId: UUID by lazy { Gruppe.KODE7.idFra(env) }
-    val riskQaGruppeId: UUID by lazy { Gruppe.RISK_QA.idFra(env) }
-    val beslutterGruppeId: UUID by lazy { Gruppe.BESLUTTER.idFra(env) }
-    val skjermedePersonerGruppeId: UUID by lazy { Gruppe.SKJERMEDE.idFra(env) }
-
+class Tilgangsgrupper(private val env: Map<String, String>) {
     fun gruppeId(gruppe: Gruppe): UUID = gruppe.idFra(env)
     fun harTilgang(gruppemedlemskap: List<UUID>, gruppe: Gruppe) = gruppemedlemskap.contains(gruppeId(gruppe))
 }

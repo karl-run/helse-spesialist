@@ -10,6 +10,7 @@ dependencies {
     api("com.nimbusds:nimbus-jose-jwt:9.31")
     implementation("com.expediagroup:graphql-kotlin-server:$graphQLKotlinVersion")
     implementation(project(":spesialist-felles"))
+    testApi(testFixtures(project(":spesialist-felles")))
     implementation(project(":spesialist-api"))
     testImplementation("org.testcontainers:postgresql:$testcontainersVersion")
 }
