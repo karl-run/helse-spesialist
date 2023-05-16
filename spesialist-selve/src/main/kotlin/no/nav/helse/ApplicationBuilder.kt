@@ -46,6 +46,7 @@ import no.nav.helse.mediator.api.notaterApi
 import no.nav.helse.mediator.api.personApi
 import no.nav.helse.mediator.api.tildelingApi
 import no.nav.helse.mediator.api.totrinnsvurderingApi
+import no.nav.helse.modell.HendelseDao
 import no.nav.helse.modell.VedtakDao
 import no.nav.helse.modell.WarningDao
 import no.nav.helse.modell.automatisering.Automatisering
@@ -208,6 +209,7 @@ internal class ApplicationBuilder(env: Map<String, String>) : RapidsConnection.S
     private val notatMediator = NotatMediator(notatDao)
     private val overstyringDao = OverstyringDao(dataSource)
     private val apiVarselRepository = ApiVarselRepository(dataSource)
+    private val hendelseDao = HendelseDao(dataSource)
 
     private val behandlingsstatistikkMediator = BehandlingsstatistikkMediator(behandlingsstatistikkDao)
     private val apiTildelingService = no.nav.helse.spesialist.api.tildeling.TildelingService(tildelingDao, saksbehandlerDao, totrinnsvurderingApiDao) {
@@ -359,7 +361,8 @@ internal class ApplicationBuilder(env: Map<String, String>) : RapidsConnection.S
         personDao = personDao,
         vedtakDao = vedtakDao,
         overstyringDao = overstyringDao,
-        stikkprøver = stikkprøver
+        stikkprøver = stikkprøver,
+        hendelseDao = hendelseDao,
     )
 
     private val hendelsefabrikk = Hendelsefabrikk(

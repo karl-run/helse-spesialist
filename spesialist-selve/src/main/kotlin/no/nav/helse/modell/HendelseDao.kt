@@ -1,5 +1,6 @@
 package no.nav.helse.modell
 
+import java.time.LocalDateTime
 import java.util.UUID
 import javax.sql.DataSource
 import kotliquery.TransactionalSession
@@ -73,6 +74,53 @@ internal class HendelseDao(private val dataSource: DataSource) {
             requireNotNull(session.run(queryOf(statement, hendelseId).map {
                 it.long("fodselsnummer").toFødselsnummer()
             }.asSingle))
+        }
+    }
+
+    internal fun finnAntallKorrigerteSøknader(vedtaksperiodeId: UUID): Int {
+        return sessionOf(dataSource).use { session ->
+            @Language("PostgreSQL")
+            val statement = """
+                SELECT count(1) AS antall
+                FROM hendelse h, json_array_elements(h.data -> 'berørtePerioder') AS bp
+                WHERE bp ->> 'vedtaksperiodeId' = :vedtaksperiodeId
+                AND h.data ->> 'årsak' = 'KORRIGERT_SØKNAD'
+                AND h.type='OVERSTYRING_IGANGSATT'
+                """
+            requireNotNull(session.run(queryOf(statement, mapOf("vedtaksperiodeId" to vedtaksperiodeId.toString())).map {
+                it.int("antall")
+            }.asSingle))
+        }
+    }
+
+    internal fun erSisteOverstyringIgangsattKorrigertSøknad(vedtaksperiodeId: UUID): Boolean {
+        return sessionOf(dataSource).use { session ->
+            @Language("PostgreSQL")
+            val statement = """
+                SELECT h.data ->> 'årsak' AS årsak, h.data ->> '@opprettet' AS opprettet
+                FROM hendelse h, json_array_elements(h.data -> 'berørtePerioder') AS bp
+                WHERE bp ->> 'vedtaksperiodeId' = :vedtaksperiodeId
+                  AND h.type='OVERSTYRING_IGANGSATT'
+                ORDER BY opprettet DESC
+                LIMIT 1
+                """
+            session.run(queryOf(statement, mapOf("vedtaksperiodeId" to vedtaksperiodeId.toString())).map {
+                it.stringOrNull("årsak")?.let {årsak -> årsak == "KORRIGERT_SØKNAD"}
+            }.asSingle) ?: false
+        }
+    }
+
+    internal fun finnDatoForFørsteSøknadMottatt(vedtaksperiodeId: UUID): LocalDateTime? {
+        return sessionOf(dataSource).use { session ->
+            @Language("PostgreSQL")
+            val statement = """
+                SELECT data -> '@forårsaket_av' ->> 'opprettet' AS opprettet 
+                FROM hendelse 
+                WHERE data ->> 'vedtaksperiodeId' = :vedtaksperiodeId and type = 'VEDTAKSPERIODE_OPPRETTET'
+            """
+            session.run(queryOf(statement, mapOf("vedtaksperiodeId" to vedtaksperiodeId.toString())).map {
+                it.stringOrNull("opprettet")?.let { dato -> LocalDateTime.parse(dato) }
+            }.asSingle)
         }
     }
 

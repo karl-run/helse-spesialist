@@ -4,6 +4,7 @@ import no.nav.helse.mediator.GodkjenningMediator
 import no.nav.helse.mediator.HendelseMediator
 import no.nav.helse.mediator.Hendelsefabrikk
 import no.nav.helse.mediator.OverstyringMediator
+import no.nav.helse.modell.HendelseDao
 import no.nav.helse.modell.VedtakDao
 import no.nav.helse.modell.WarningDao
 import no.nav.helse.modell.automatisering.Automatisering
@@ -35,6 +36,7 @@ internal class TestMediator(
     private val vedtakDao = VedtakDao(dataSource)
     private val opptegnelseDao = OpptegnelseDao(dataSource)
     private val overstyringDao = OverstyringDao(dataSource)
+    private val hendelseDao = HendelseDao(dataSource)
 
     private val godkjenningMediator = GodkjenningMediator(
         warningDao,
@@ -67,7 +69,8 @@ internal class TestMediator(
             override fun fullRefusjonFlereArbeidsgivereFørstegangsbehandling() = false
             override fun fullRefusjonFlereArbeidsgivereForlengelse() = false
             override fun fullRefusjonEnArbeidsgiver() = false
-        }
+        },
+        hendelseDao = hendelseDao
     )
 
     private val hendelsefabrikk = Hendelsefabrikk(

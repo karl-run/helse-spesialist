@@ -10,6 +10,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 import no.nav.helse.januar
 import no.nav.helse.mediator.Toggle
+import no.nav.helse.modell.HendelseDao
 import no.nav.helse.modell.VedtakDao
 import no.nav.helse.modell.WarningDao
 import no.nav.helse.modell.egenansatt.EgenAnsattDao
@@ -42,6 +43,7 @@ internal class AutomatiseringTest {
     private val automatiseringDaoMock = mockk<AutomatiseringDao>(relaxed = true)
     private val vergemålDaoMock = mockk<VergemålDao>(relaxed = true)
     private val overstyringDaoMock = mockk<OverstyringDao>(relaxed = true)
+    private val hendelseDaoMock = mockk<HendelseDao>(relaxed = true)
     private var stikkprøveFullRefusjonEnArbeidsgiver = false
     private var stikkprøveUtsEnArbeidsgiverFørstegangsbehandling = false
     private var stikkprøveUtsEnArbeidsgiverForlengelse = false
@@ -66,7 +68,8 @@ internal class AutomatiseringTest {
             personDao = personDaoMock,
             vedtakDao = vedtakDaoMock,
             overstyringDao = overstyringDaoMock,
-            stikkprøver = stikkprøver
+            stikkprøver = stikkprøver,
+            hendelseDao = hendelseDaoMock
         )
 
     companion object {
@@ -86,6 +89,8 @@ internal class AutomatiseringTest {
         every { åpneGosysOppgaverDaoMock.harÅpneOppgaver(any()) } returns 0
         every { egenAnsattDao.erEgenAnsatt(any()) } returns false
         every { overstyringDaoMock.harVedtaksperiodePågåendeOverstyring(any()) } returns false
+        every { hendelseDaoMock.finnAntallKorrigerteSøknader(vedtaksperiodeId) } returns 2
+        every { hendelseDaoMock.finnDatoForFørsteSøknadMottatt(vedtaksperiodeId) } returns LocalDateTime.now().minusMonths(6).plusDays(1)
         stikkprøveFullRefusjonEnArbeidsgiver = false
         stikkprøveUtsEnArbeidsgiverForlengelse = false
     }
@@ -106,6 +111,18 @@ internal class AutomatiseringTest {
             forsøkAutomatisering(generasjoner = listOf(gjeldendeGenerasjon))
             assertGikkTilManuell()
         }
+    }
+
+    @Test
+    fun `vedtaksperiode med 2 tidligere korrigerte søknader er ikke automatiserbar`() {
+        every { hendelseDaoMock.finnAntallKorrigerteSøknader(vedtaksperiodeId) } returns 3
+        gårTilManuell()
+    }
+
+    @Test
+    fun `vedtaksperiode som mottok første søknad for mer enn 6 måneder er ikke automatiserbar`() {
+        every { hendelseDaoMock.finnDatoForFørsteSøknadMottatt(vedtaksperiodeId) } returns LocalDateTime.now().minusMonths(6)
+        gårTilManuell()
     }
 
     @Test

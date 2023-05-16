@@ -44,6 +44,7 @@ import no.nav.helse.mediator.OverstyringMediator
 import no.nav.helse.mediator.Toggle
 import no.nav.helse.mediator.meldinger.Risikofunn
 import no.nav.helse.mediator.meldinger.Testmeldingfabrikk
+import no.nav.helse.modell.HendelseDao
 import no.nav.helse.modell.VedtakDao
 import no.nav.helse.modell.WarningDao
 import no.nav.helse.modell.automatisering.Automatisering
@@ -119,6 +120,7 @@ internal abstract class AbstractE2ETest : AbstractDatabaseTest() {
     private val totrinnsvurderingApiDao = TotrinnsvurderingApiDao(dataSource)
     private val vergemålDao = VergemålDao(dataSource)
     private val overstyringDao = OverstyringDao(dataSource)
+    private val hendelseDao = HendelseDao(dataSource)
 
     protected val snapshotClient = mockk<SnapshotClient>(relaxed = true)
     private val snapshotApiDao = SnapshotApiDao(dataSource)
@@ -154,7 +156,9 @@ internal abstract class AbstractE2ETest : AbstractDatabaseTest() {
                 override fun fullRefusjonFlereArbeidsgivereFørstegangsbehandling() = false
                 override fun fullRefusjonFlereArbeidsgivereForlengelse() = false
                 override fun fullRefusjonEnArbeidsgiver() = false
-            }),
+            },
+            hendelseDao = hendelseDao
+        ),
         overstyringMediator = OverstyringMediator(testRapid),
         snapshotMediator = snapshotMediator
     )

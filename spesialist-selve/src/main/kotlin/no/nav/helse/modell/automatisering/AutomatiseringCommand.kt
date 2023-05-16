@@ -10,9 +10,12 @@ import no.nav.helse.modell.kommando.CommandContext.Companion.ferdigstill
 import no.nav.helse.modell.sykefraværstilfelle.Sykefraværstilfelle
 import no.nav.helse.modell.utbetaling.Utbetaling
 import no.nav.helse.modell.vedtaksperiode.Periodetype
+import no.nav.helse.spesialist.api.graphql.hentsnapshot.GraphQLSoknadNav
+import no.nav.helse.spesialist.api.snapshot.SnapshotClient
 import org.slf4j.LoggerFactory
 
-internal class AutomatiseringCommand(
+internal class
+AutomatiseringCommand(
     private val fødselsnummer: String,
     private val vedtaksperiodeId: UUID,
     private val hendelseId: UUID,

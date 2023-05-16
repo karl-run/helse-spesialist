@@ -234,6 +234,7 @@ class GenerasjonDao(private val dataSource: DataSource) {
         }
     }
 
+
     internal fun oppdaterTilstandFor(generasjonId: UUID, ny: Generasjon.Tilstand, endretAv: UUID) {
         @Language("PostgreSQL")
         val query = """
@@ -252,6 +253,30 @@ class GenerasjonDao(private val dataSource: DataSource) {
                         "generasjon_id" to generasjonId
                     )
                 ).asUpdate
+            )
+        }
+    }
+
+    internal fun førsteGenerasjonLåst(vedtaksperiodeId: UUID): LocalDateTime? {
+        @Language("PostgreSQL")
+        val query = """
+                SELECT tilstand_endret_tidspunkt 
+                FROM selve_vedtaksperiode_generasjon 
+                WHERE vedtaksperiode_id = :vedtaksperiodeId AND tilstand = :tilstand
+                ORDER BY tilstand_endret_tidspunkt ASC 
+                LIMIT 1
+            """
+        return sessionOf(dataSource).use { session ->
+            session.run(
+                queryOf(
+                    query,
+                    mapOf(
+                        "vedtaksperiodeId" to vedtaksperiodeId,
+                        "tilstand" to Generasjon.Låst.navn()
+                    )
+                ).map {
+                    it.stringOrNull("tilstand_endret_tidspunkt")?.let { dato -> LocalDateTime.parse(dato) }
+                }.asSingle
             )
         }
     }

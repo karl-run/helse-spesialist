@@ -1,12 +1,14 @@
 package no.nav.helse.modell.automatisering
 
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 import net.logstash.logback.argument.StructuredArguments.keyValue
 import net.logstash.logback.argument.StructuredArguments.kv
 import no.nav.helse.mediator.Toggle.AutomatiserRevuderinger
 import no.nav.helse.mediator.Toggle.AutomatiserUtbetalingTilSykmeldt
 import no.nav.helse.mediator.meldinger.løsninger.HentEnhetløsning.Companion.erEnhetUtland
+import no.nav.helse.modell.HendelseDao
 import no.nav.helse.modell.VedtakDao
 import no.nav.helse.modell.WarningDao
 import no.nav.helse.modell.egenansatt.EgenAnsattDao
@@ -17,6 +19,7 @@ import no.nav.helse.modell.risiko.RisikovurderingDao
 import no.nav.helse.modell.sykefraværstilfelle.Sykefraværstilfelle
 import no.nav.helse.modell.utbetaling.Refusjonstype
 import no.nav.helse.modell.utbetaling.Utbetaling
+import no.nav.helse.modell.vedtaksperiode.GenerasjonDao
 import no.nav.helse.modell.vedtaksperiode.Inntektskilde
 import no.nav.helse.modell.vedtaksperiode.Periodetype
 import no.nav.helse.modell.vergemal.VergemålDao
@@ -33,6 +36,8 @@ internal class Automatisering(
     private val vedtakDao: VedtakDao,
     private val overstyringDao: OverstyringDao,
     private val stikkprøver: Stikkprøver,
+    private val hendelseDao: HendelseDao,
+    private val generasjonDao: GenerasjonDao,
 ) {
     private companion object {
         private val logger = LoggerFactory.getLogger(Automatisering::class.java)
@@ -73,6 +78,7 @@ internal class Automatisering(
             automatiseringDao.manuellSaksbehandling(problemer, vedtaksperiodeId, hendelseId, utbetaling.utbetalingId)
             return
         }
+
         avgjørStikkprøve(erUTS, flereArbeidsgivere, erFørstegangsbehandling)?.let {
             tilStikkprøve(it, utfallslogger, vedtaksperiodeId, hendelseId, utbetaling.utbetalingId)
         } ?: run {
@@ -171,7 +177,11 @@ internal class Automatisering(
                         !arrayOf(Periodetype.FORLENGELSE, Periodetype.FØRSTEGANGSBEHANDLING).contains(periodetype))
             } else harUtbetalingTilSykmeldt
 
-        return valider(
+        val førsteVedtakTidspunkt = generasjonDao.førsteGenerasjonLåst(vedtaksperiodeId)
+        val merEnn6MånederSidenFørsteVedtak = førsteVedtakTidspunkt?.isBefore(LocalDateTime.now().minusMonths(6)) ?: true
+        val antallKorrigeringer = hendelseDao.finnAntallKorrigerteSøknader(vedtaksperiodeId)
+
+        val valideringer = listOf(
             risikovurdering,
             validering("Har varsler") { !forhindrerAutomatisering },
             validering("Det finnes åpne oppgaver på sykepenger i Gosys") {
@@ -182,7 +192,13 @@ internal class Automatisering(
             validering("Bruker tilhører utlandsenhet") { !tilhørerUtlandsenhet },
             validering("Utbetaling til sykmeldt") { !skalStoppesPgaUTS },
             AutomatiserRevurderinger(utbetaling, fødselsnummer, vedtaksperiodeId),
-            validering("Vedtaksperioden har en pågående overstyring") { !harPågåendeOverstyring }
+            validering("Vedtaksperioden har en pågående overstyring") { !harPågåendeOverstyring },
+            validering("Mer enn 6 måneder siden første mottatte søknad") { !merEnn6MånederSidenFørsteVedtak },
+            validering("Har mottatt fler enn 2 korrigerte søknader") { antallKorrigeringer <= 2 }
+        )
+
+        return valider(
+            valideringer.to
         )
     }
 
