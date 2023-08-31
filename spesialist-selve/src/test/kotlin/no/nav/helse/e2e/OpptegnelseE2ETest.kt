@@ -33,7 +33,11 @@ private class OpptegnelseE2ETest : AbstractE2ETestV2() {
         håndterVedtaksperiodeOpprettet()
         håndterVedtaksperiodeNyUtbetaling()
 
-        val opptegnelseMediator = OpptegnelseMediator(OpptegnelseDao(dataSource), AbonnementDao(dataSource))
+        val opptegnelseMediator = OpptegnelseMediator(
+            OpptegnelseDao(dataSource),
+            AbonnementDao(dataSource),
+            SaksbehandlerDao(dataSource)
+        )
 
         val respons =
             AbstractApiTest.TestServer { opptegnelseApi(opptegnelseMediator) }

@@ -335,7 +335,7 @@ internal class ApplicationBuilder(env: Map<String, String>) : RapidsConnection.S
                     )
                     overstyringApi(saksbehandlerMediator)
                     annulleringApi(saksbehandlerMediator)
-                    opptegnelseApi(OpptegnelseMediator(opptegnelseApiDao, abonnementDao))
+                    opptegnelseApi(OpptegnelseMediator(opptegnelseApiDao, abonnementDao, saksbehandlerDao))
                     behandlingsstatistikkApi(BehandlingsstatistikkMediator(behandlingsstatistikkDao))
                     totrinnsvurderingApi(
                         tildelingService,
