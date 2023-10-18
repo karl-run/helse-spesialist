@@ -1,5 +1,6 @@
 package no.nav.helse.mediator
 
+import java.time.LocalDateTime
 import java.util.UUID
 import javax.sql.DataSource
 import net.logstash.logback.argument.StructuredArguments.kv
@@ -60,7 +61,27 @@ import no.nav.helse.spesialist.api.vedtak.GodkjenningDto
 import no.nav.helse.spesialist.api.vedtak.Vedtaksperiode.Companion.harAktiveVarsler
 import no.nav.helse.spesialist.api.vedtak.Vedtaksperiode.Companion.vurderVarsler
 import no.nav.helse.spesialist.api.vedtaksperiode.ApiGenerasjonRepository
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+
+private class SikretLogger(
+    private val logger: Logger,
+    private vararg val mdcEntries: Pair<String, String>,
+) : Logger by logger {
+
+    val loggMedMdc = { loggerBlock: () -> Unit -> withMDC(mdcEntries.toMap(), loggerBlock) }
+
+    override fun warn(message: String) = loggMedMdc { logger.warn(message) }
+    override fun warn(format: String, arg1: Any, arg2: Any) = loggMedMdc { logger.warn(format, arrayOf(arg1, arg2)) }
+    override fun warn(format: String, vararg arguments: Any) = loggMedMdc { logger.warn(format, arguments) }
+    override fun info(message: String) = loggMedMdc { logger.info(message) }
+    override fun info(format: String, arg1: Any, arg2: Any) = loggMedMdc { logger.info(format, arrayOf(arg1, arg2)) }
+    override fun info(format: String, vararg arguments: Any) = loggMedMdc { logger.info(format, arguments) }
+    override fun debug(message: String) = loggMedMdc { logger.debug(message) }
+    override fun debug(format: String, arg1: Any, arg2: Any) = loggMedMdc { logger.debug(format, arrayOf(arg1, arg2)) }
+    override fun debug(format: String, vararg arguments: Any) = loggMedMdc { logger.debug(format, arguments) } }
+
+private fun Logger.medMdc(vararg mdcEntries: Pair<String, String>): SikretLogger = SikretLogger(this, *mdcEntries)
 
 internal class SaksbehandlerMediator(
     dataSource: DataSource,
@@ -68,7 +89,7 @@ internal class SaksbehandlerMediator(
     private val rapidsConnection: RapidsConnection,
     private val oppgaveMediator: OppgaveMediator,
     private val tilgangsgrupper: Tilgangsgrupper,
-): Saksbehandlerhåndterer {
+) : Saksbehandlerhåndterer {
     private val saksbehandlerDao = SaksbehandlerDao(dataSource)
     private val generasjonRepository = ApiGenerasjonRepository(dataSource)
     private val varselRepository = ApiVarselRepository(dataSource)
@@ -93,13 +114,22 @@ internal class SaksbehandlerMediator(
                 "handlingId" to handlingId.toString()
             )
         ) {
+            val sikkerlogg = sikkerlogg.medMdc("aktørId" to saksbehandler.ident(), "fødselsnummer" to "1337")
+
+            val åpenLogger = LoggerFactory.getLogger(this::class.java)
             sikkerlogg.info("Utfører handling ${modellhandling.loggnavn()} på vegne av saksbehandler $saksbehandler")
+            åpenLogger.info("Utfører handling ${modellhandling.loggnavn()} på vegne av saksbehandler $saksbehandler")
+
+            sikkerlogg.warn("Advarsel! Utfører handling ${modellhandling.loggnavn()} på vegne av saksbehandler $saksbehandler")
+            åpenLogger.warn("Advarsel! Utfører handling ${modellhandling.loggnavn()} på vegne av saksbehandler $saksbehandler")
+
             when (modellhandling) {
                 is Overstyring -> håndter(modellhandling, saksbehandler)
                 is Oppgavehandling -> håndter(modellhandling, saksbehandler)
                 else -> modellhandling.utførAv(saksbehandler)
             }
             sikkerlogg.info("Handling ${modellhandling.loggnavn()} utført")
+            sikkerlogg.info("Flere parametere: {}, loggingen skjedde: {}, status={}", 1, kv("nå", LocalDateTime.now()), true)
         }
     }
 
