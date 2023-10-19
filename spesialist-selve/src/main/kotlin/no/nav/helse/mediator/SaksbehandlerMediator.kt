@@ -64,11 +64,10 @@ import no.nav.helse.spesialist.api.vedtaksperiode.ApiGenerasjonRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-private class SikretLogger(
-    private val logger: Logger,
+private class LoggerMedMdc(
     private vararg val mdcEntries: Pair<String, String>,
+    private val logger: Logger = LoggerFactory.getLogger("tjenestekall"),
 ) : Logger by logger {
-
     val loggMedMdc = { loggerBlock: () -> Unit -> withMDC(mdcEntries.toMap(), loggerBlock) }
 
     override fun warn(message: String) = loggMedMdc { logger.warn(message) }
@@ -80,8 +79,6 @@ private class SikretLogger(
     override fun debug(message: String) = loggMedMdc { logger.debug(message) }
     override fun debug(format: String, arg1: Any, arg2: Any) = loggMedMdc { logger.debug(format, arrayOf(arg1, arg2)) }
     override fun debug(format: String, vararg arguments: Any) = loggMedMdc { logger.debug(format, arguments) } }
-
-private fun Logger.medMdc(vararg mdcEntries: Pair<String, String>): SikretLogger = SikretLogger(this, *mdcEntries)
 
 internal class SaksbehandlerMediator(
     dataSource: DataSource,
@@ -114,7 +111,7 @@ internal class SaksbehandlerMediator(
                 "handlingId" to handlingId.toString()
             )
         ) {
-            val sikkerlogg = sikkerlogg.medMdc("aktørId" to saksbehandler.ident(), "fødselsnummer" to "1337")
+            val sikkerlogg = LoggerMedMdc("aktørId" to saksbehandler.ident(), "fødselsnummer" to "1337")
 
             val åpenLogger = LoggerFactory.getLogger(this::class.java)
             sikkerlogg.info("Utfører handling ${modellhandling.loggnavn()} på vegne av saksbehandler $saksbehandler")
