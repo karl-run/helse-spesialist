@@ -1,10 +1,10 @@
 package no.nav.helse.modell.egenansatt
 
+import java.time.LocalDateTime
+import javax.sql.DataSource
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import org.intellij.lang.annotations.Language
-import java.time.LocalDateTime
-import javax.sql.DataSource
 
 class EgenAnsattDao(private val dataSource: DataSource) {
     internal fun lagre(fødselsnummer: String, erEgenAnsatt: Boolean, opprettet: LocalDateTime) {
@@ -50,6 +50,24 @@ class EgenAnsattDao(private val dataSource: DataSource) {
                 )
                     .map { it.boolean("er_egen_ansatt") }
                     .asSingle
+            )
+        }
+    }
+
+    fun sistOppdatert(fødselsnummer: String): LocalDateTime? {
+        @Language("PostgreSQL")
+        val query = """
+            select ea.opprettet
+            from egen_ansatt ea
+            inner join person p on p.id = ea.person_ref
+            where p.fodselsnummer = :fodselsnummer
+        """.trimIndent()
+        return sessionOf(dataSource).use { session ->
+            session.run(
+                queryOf(
+                    query,
+                    mapOf("fodselsnummer" to fødselsnummer.toLong())
+                ).map { it.localDateTimeOrNull("opprettet") }.asSingle
             )
         }
     }

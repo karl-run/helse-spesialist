@@ -1,5 +1,7 @@
 package no.nav.helse.modell.egenansatt
 
+import java.time.Duration
+import java.time.LocalDateTime
 import no.nav.helse.mediator.meldinger.løsninger.EgenAnsattløsning
 import no.nav.helse.modell.kommando.Command
 import no.nav.helse.modell.kommando.CommandContext
@@ -15,7 +17,12 @@ internal class EgenAnsattCommand(
         private val sikkerlogg = LoggerFactory.getLogger("tjenestekall")
     }
 
-    override fun execute(context: CommandContext) = behandle(context)
+    override fun execute(context: CommandContext): Boolean {
+        val harOppdatertInfo = egenAnsattDao.sistOppdatert(fødselsnummer)?.let { sistOppdatert ->
+            Duration.between(sistOppdatert, LocalDateTime.now()).toHours() < 8
+        } ?: false
+        return harOppdatertInfo || behandle(context)
+    }
 
     override fun resume(context: CommandContext) = behandle(context)
 

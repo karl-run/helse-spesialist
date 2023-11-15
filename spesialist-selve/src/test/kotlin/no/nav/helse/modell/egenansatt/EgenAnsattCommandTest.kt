@@ -1,6 +1,7 @@
 package no.nav.helse.modell.egenansatt
 
 import io.mockk.clearMocks
+import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import java.time.LocalDateTime
@@ -30,8 +31,23 @@ internal class EgenAnsattCommandTest {
 
     @Test
     fun `ber om informasjon om egen ansatt`() {
+        every { dao.sistOppdatert(FNR) } returns null
         assertFalse(command.execute(context))
         assertEquals(listOf("EgenAnsatt"), context.behov().keys.toList())
+    }
+
+    @Test
+    fun `ber om informasjon om egen ansatt hvis den vi har er utdatert`() {
+        every { dao.sistOppdatert(FNR) } returns LocalDateTime.now().minusHours(8)
+        assertFalse(command.execute(context))
+        assertEquals(listOf("EgenAnsatt"), context.behov().keys.toList())
+    }
+
+    @Test
+    fun `ber ikke om informasjon om egen ansatt hvis den vi har er oppdatert`() {
+        every { dao.sistOppdatert(FNR) } returns LocalDateTime.now().minusHours(7)
+        assertTrue(command.execute(context))
+        assertEquals(emptyList<String>(), context.behov().keys.toList())
     }
 
     @Test
