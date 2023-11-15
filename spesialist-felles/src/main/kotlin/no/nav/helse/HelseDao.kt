@@ -4,22 +4,18 @@ import javax.sql.DataSource
 import kotliquery.Query
 import kotliquery.Row
 import kotliquery.queryOf
-import kotliquery.sessionOf
 import org.intellij.lang.annotations.Language
 
-abstract class HelseDao(private val dataSource: DataSource) {
+abstract class HelseDao(dataSource: DataSource) {
+    private val dbQueries = DbQueries(dataSource)
+
     fun asSQL(@Language("SQL") sql: String, argMap: Map<String, Any?> = emptyMap()) = queryOf(sql, argMap)
     fun asSQL(@Language("SQL") sql: String, vararg params: Any?) = queryOf(sql, *params)
 
-    fun <T> Query.single(mapping: (Row) -> T?) =
-        sessionOf(dataSource, strict = true).use { session -> session.run(this.map { mapping(it) }.asSingle) }
+    fun <T> Query.single(mapping: (Row) -> T?) = dbQueries.run { single(mapping) }
 
-    fun <T> Query.list(mapping: (Row) -> T?) =
-        sessionOf(dataSource).use { session -> session.run(this.map { mapping(it) }.asList) }
+    fun <T> Query.list(mapping: (Row) -> T?) = dbQueries.run { list(mapping) }
 
-    fun Query.update() = sessionOf(dataSource).use { session -> session.run(this.asUpdate) }
-    fun Query.updateAndReturnGeneratedKey() = sessionOf(
-        dataSource,
-        returnGeneratedKey = true
-    ).use { session -> session.run(this.asUpdateAndReturnGeneratedKey) }
+    fun Query.update() = dbQueries.run { update() }
+    fun Query.updateAndReturnGeneratedKey() = dbQueries.run { updateAndReturnGeneratedKey() }
 }

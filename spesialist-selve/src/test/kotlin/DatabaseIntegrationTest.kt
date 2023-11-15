@@ -8,10 +8,10 @@ import java.util.Random
 import java.util.UUID
 import kotliquery.Query
 import kotliquery.Row
-import kotliquery.action.QueryAction
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.AbstractDatabaseTest
+import no.nav.helse.DbQueries
 import no.nav.helse.db.EgenskapForDatabase
 import no.nav.helse.db.ReservasjonDao
 import no.nav.helse.db.SaksbehandlerDao
@@ -588,12 +588,9 @@ abstract class DatabaseIntegrationTest : AbstractDatabaseTest() {
         val tom: LocalDate,
     )
 
-    protected fun query(@Language("postgresql") query: String, vararg params: Pair<String, Any>) =
-        queryOf(query, params.toMap())
+    private val dbQueries = DbQueries(dataSource)
 
-    protected fun Query.update() = asUpdate.runInSession()
+    protected fun Query.update() = dbQueries.run { update() }
 
-    protected fun <T> Query.single(mapper: (Row) -> T?) = map(mapper).asSingle.runInSession()
-
-    protected fun <T> QueryAction<T>.runInSession() = sessionOf(dataSource).use(::runWithSession)
+    protected fun <T> Query.single(mapper: (Row) -> T?) = dbQueries.run { single(mapper) }
 }
