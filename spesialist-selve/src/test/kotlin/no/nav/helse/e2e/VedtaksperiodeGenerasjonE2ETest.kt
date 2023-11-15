@@ -2,13 +2,12 @@ package no.nav.helse.e2e
 
 import AbstractE2ETest
 import java.util.UUID
-import kotliquery.queryOf
-import kotliquery.sessionOf
+import no.nav.helse.DbQueries
 import no.nav.helse.Testdata.UTBETALING_ID
 import no.nav.helse.Testdata.VEDTAKSPERIODE_ID
 import no.nav.helse.januar
 import no.nav.helse.modell.vedtaksperiode.Generasjon
-import org.intellij.lang.annotations.Language
+import no.nav.helse.query
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -113,43 +112,42 @@ internal class VedtaksperiodeGenerasjonE2ETest : AbstractE2ETest() {
         assertGenerasjonHarVarsler(VEDTAKSPERIODE_ID, utbetalingId, 1)
     }
 
+    private val dbQueries = DbQueries(dataSource)
+
     private fun assertGenerasjonHarVarsler(vedtaksperiodeId: UUID, utbetalingId: UUID, forventetAntall: Int) {
-        val antall = sessionOf(dataSource).use { session ->
-            @Language("PostgreSQL")
-            val query =
+        val antall = dbQueries.run {
+            query(
                 """
-                    SELECT COUNT(1) FROM selve_vedtaksperiode_generasjon svg 
-                    INNER JOIN selve_varsel sv on svg.id = sv.generasjon_ref 
-                    WHERE svg.vedtaksperiode_id = ? AND utbetaling_id = ?
-                    """
-            session.run(queryOf(query, vedtaksperiodeId, utbetalingId).map { it.int(1) }.asSingle)
+                    SELECT COUNT(1) FROM selve_vedtaksperiode_generasjon svg
+                    INNER JOIN selve_varsel sv on svg.id = sv.generasjon_ref
+                    WHERE svg.vedtaksperiode_id = :vedtaksperiodeId AND utbetaling_id = :utbetalingId
+                """.trimIndent(), "vedtaksperiodeId" to vedtaksperiodeId, "utbetalingId" to utbetalingId
+            ).single { it.int(1) }
         }
         assertEquals(forventetAntall, antall) { "Forventet $forventetAntall varsler for $vedtaksperiodeId, $utbetalingId, fant $antall" }
     }
 
     private fun assertGenerasjoner(vedtaksperiodeId: UUID, forventetAntall: Int) {
-        val antall = sessionOf(dataSource).use { session ->
-            @Language("PostgreSQL")
-            val query = "SELECT COUNT(1) FROM selve_vedtaksperiode_generasjon WHERE vedtaksperiode_id = ?"
-            session.run(queryOf(query, vedtaksperiodeId).map { it.int(1) }.asSingle)
+        val antall = dbQueries.run {
+            query(
+                "SELECT COUNT(1) FROM selve_vedtaksperiode_generasjon WHERE vedtaksperiode_id = :vedtaksperiodeId",
+                "vedtaksperiodeId" to vedtaksperiodeId
+            ).single { it.int(1) }
         }
         assertEquals(forventetAntall, antall) { "Forventet $forventetAntall generasjoner for $vedtaksperiodeId, fant $antall" }
     }
 
     private fun assertFerdigBehandledeGenerasjoner(vedtaksperiodeId: UUID, forventetAntall: Int) {
-        val antall = sessionOf(dataSource).use { session ->
-            @Language("PostgreSQL")
-            val query = "SELECT COUNT(1) FROM selve_vedtaksperiode_generasjon WHERE vedtaksperiode_id = ? AND tilstand = '${Generasjon.Låst.navn()}'"
-            session.run(queryOf(query, vedtaksperiodeId).map { it.int(1) }.asSingle)
+        val antall = dbQueries.run {
+            query("SELECT COUNT(1) FROM selve_vedtaksperiode_generasjon WHERE vedtaksperiode_id = :vedtaksperiodeId AND tilstand = '${Generasjon.Låst.navn()}'",
+                "vedtaksperiodeId" to vedtaksperiodeId).single { it.int(1) }
         }
         assertEquals(forventetAntall, antall) { "Forventet $forventetAntall ferdig behandlede generasjoner for $vedtaksperiodeId, fant $antall" }
     }
 
     private fun assertGenerasjonerMedUtbetaling(vedtaksperiodeId: UUID, utbetalingId: UUID, forventetAntall: Int) {
-        val antall = sessionOf(dataSource).use { session ->
-            @Language("PostgreSQL")
-            val query = "SELECT COUNT(1) FROM selve_vedtaksperiode_generasjon WHERE vedtaksperiode_id = ? AND utbetaling_id = ?"
-            session.run(queryOf(query, vedtaksperiodeId, utbetalingId).map { it.int(1) }.asSingle)
+        val antall = dbQueries.run {
+            query("SELECT COUNT(1) FROM selve_vedtaksperiode_generasjon WHERE vedtaksperiode_id = :vedtaksperiodeId AND utbetaling_id = :utbetalingId".trimIndent(), "vedtaksperiodeId" to vedtaksperiodeId, "utbetalingId" to utbetalingId).single { it.int(1) }
         }
         assertEquals(forventetAntall, antall) { "Forventet $forventetAntall generasjoner med utbetalingId=$utbetalingId for $vedtaksperiodeId, fant $antall" }
     }
