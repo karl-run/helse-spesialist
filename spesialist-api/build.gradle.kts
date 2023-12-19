@@ -43,3 +43,10 @@ val copySchemaFile by tasks.registering(Copy::class) {
 tasks.graphqlIntrospectSchema {
     finalizedBy(copySchemaFile)
 }
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
