@@ -50,10 +50,7 @@ fragment grunnlag on GraphQLVilkarsgrunnlag {
             kilde
             manedsbelop
         }
-        skjonnsmessigFastsatt {
-            belop
-            manedsbelop
-        }
+        skjonnsmessigFastsattAarlig
         deaktivert
     }
     arbeidsgiverrefusjoner {

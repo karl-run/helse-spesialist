@@ -8,7 +8,7 @@ import no.nav.helse.spleis.graphql.hentsnapshot.GraphQLSpleisVilkarsgrunnlag
 import no.nav.helse.spleis.graphql.hentsnapshot.GraphQLSykepengegrunnlagsgrense
 import no.nav.helse.spleis.graphql.hentsnapshot.GraphQLVilkarsgrunnlag
 
-enum class Vilkarsgrunnlagtype { INFOTRYGD, SPLEIS, UKJENT }
+enum class Vilkarsgrunnlagtype { INFOTRYGD, SPLEIS }
 
 interface Vilkarsgrunnlag {
     val id: UUIDString
@@ -72,7 +72,7 @@ internal fun GraphQLVilkarsgrunnlag.tilVilkarsgrunnlag(avviksvurderinghenter: Av
                                 )
                             }
                         ),
-                        skjonnsmessigFastsatt = arbeidsgiverinntekt.skjonnsmessigFastsatt?.tilOmregnetÅrsinntekt(),
+                        skjonnsmessigFastsatt = arbeidsgiverinntekt.skjonnsmessigFastsattAarlig,
                         deaktivert = arbeidsgiverinntekt.deaktivert
                     )
                 },
@@ -82,7 +82,7 @@ internal fun GraphQLVilkarsgrunnlag.tilVilkarsgrunnlag(avviksvurderinghenter: Av
                 vilkarsgrunnlagtype = Vilkarsgrunnlagtype.SPLEIS,
                 id = id,
                 arbeidsgiverrefusjoner = arbeidsgiverrefusjoner.map { it.tilArbeidsgiverrefusjon() },
-                skjonnsmessigFastsattAarlig = skjonnsmessigFastsattAarlig,
+                skjonnsmessigFastsattAarlig = inntekter.mapNotNull { it.skjonnsmessigFastsattAarlig }.takeIf(List<*>::isNotEmpty)?.sum(),
                 skjaeringstidspunkt = skjaeringstidspunkt,
                 sykepengegrunnlag = sykepengegrunnlag,
                 antallOpptjeningsdagerErMinst = antallOpptjeningsdagerErMinst,

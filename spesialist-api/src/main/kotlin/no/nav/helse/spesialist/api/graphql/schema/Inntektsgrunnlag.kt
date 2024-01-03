@@ -9,7 +9,7 @@ data class Arbeidsgiverinntekt(
     val arbeidsgiver: String,
     val omregnetArsinntekt: OmregnetArsinntekt?,
     val sammenligningsgrunnlag: Sammenligningsgrunnlag?,
-    val skjonnsmessigFastsatt: OmregnetArsinntekt?,
+    val skjonnsmessigFastsatt: Double?,
     val deaktivert: Boolean? = null
 )
 
@@ -35,8 +35,7 @@ enum class Inntektskilde {
     INFOTRYGD,
     INNTEKTSMELDING,
     SAKSBEHANDLER,
-    IKKE_RAPPORTERT,
-    SKJONNSMESSIG_FASTSATT
+    IKKE_RAPPORTERT
 }
 
 internal fun GraphQLOmregnetArsinntekt.tilOmregnetÅrsinntekt(): OmregnetArsinntekt =
@@ -44,14 +43,6 @@ internal fun GraphQLOmregnetArsinntekt.tilOmregnetÅrsinntekt(): OmregnetArsinnt
         belop = belop,
         inntektFraAOrdningen = inntekterFraAOrdningen?.map { it.tilInntektFraAOrdningen() },
         kilde = kilde.tilInntektskilde(),
-        manedsbelop = manedsbelop
-    )
-
-internal fun GraphQLSkjonnsmessigFastsatt.tilOmregnetÅrsinntekt(): OmregnetArsinntekt =
-    OmregnetArsinntekt(
-        belop = belop,
-        inntektFraAOrdningen = null,
-        kilde = Inntektskilde.SKJONNSMESSIG_FASTSATT,
         manedsbelop = manedsbelop
     )
 
@@ -68,6 +59,5 @@ private fun GraphQLInntektskilde.tilInntektskilde(): Inntektskilde =
         GraphQLInntektskilde.INNTEKTSMELDING -> Inntektskilde.INNTEKTSMELDING
         GraphQLInntektskilde.SAKSBEHANDLER -> Inntektskilde.SAKSBEHANDLER
         GraphQLInntektskilde.IKKERAPPORTERT -> Inntektskilde.IKKE_RAPPORTERT
-        GraphQLInntektskilde.SKJONNSMESSIGFASTSATT -> Inntektskilde.SKJONNSMESSIG_FASTSATT
         else -> throw Exception("Ukjent inntektskilde ${this.name}")
     }
