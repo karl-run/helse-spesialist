@@ -227,7 +227,6 @@ internal class HendelseDao(private val dataSource: DataSource) {
             OVERSTYRING_ARBEIDSFORHOLD -> hendelsefabrikk.overstyringArbeidsforhold(json)
             SKJØNNSFASTSETTING_SYKEPENGEGRUNNLAG -> hendelsefabrikk.skjønnsfastsettingSykepengegrunnlag(json)
             OVERSTYRING_IGANGSATT -> hendelsefabrikk.overstyringIgangsatt(json)
-            SAKSBEHANDLERLØSNING -> hendelsefabrikk.saksbehandlerløsning(json)
             UTBETALING_ANNULLERT -> hendelsefabrikk.utbetalingAnnullert(json)
             UTBETALING_ENDRET -> hendelsefabrikk.utbetalingEndret(json)
             OPPDATER_PERSONSNAPSHOT -> hendelsefabrikk.oppdaterPersonsnapshot(json)
@@ -241,6 +240,8 @@ internal class HendelseDao(private val dataSource: DataSource) {
             SØKNAD_SENDT -> hendelsefabrikk.søknadSendt(json)
             VEDTAKSPERIODE_NY_UTBETALING -> hendelsefabrikk.vedtaksperiodeNyUtbetaling(json)
             SYKEFRAVÆRSTILFELLER -> hendelsefabrikk.sykefraværstilfeller(json)
+            else -> throw IllegalArgumentException("Prøver å gjenoppta en kommando(kjede) etter mottak av hendelsetype " +
+                    "$hendelsetype, men koden som trengs mangler!")
         }
 
     private fun tilHendelsetype(hendelse: Personhendelse) = when (hendelse) {

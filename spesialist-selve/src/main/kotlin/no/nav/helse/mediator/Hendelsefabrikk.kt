@@ -377,29 +377,6 @@ internal class Hendelsefabrikk(
         )
     }
 
-    fun saksbehandlerløsning(json: String): Saksbehandlerløsning {
-        val jsonNode = mapper.readTree(json)
-        return saksbehandlerløsning(
-            id = UUID.fromString(jsonNode["@id"].asText()),
-            behandlingId = UUID.fromString(jsonNode["behandlingId"].asText()),
-            godkjenningsbehovhendelseId = UUID.fromString(jsonNode["hendelseId"].asText()),
-            fødselsnummer = jsonNode["fødselsnummer"].asText(),
-            godkjent = jsonNode["godkjent"].asBoolean(),
-            saksbehandlerident = jsonNode["saksbehandlerident"].asText(),
-            epostadresse = jsonNode["saksbehandlerepost"].asText(),
-            godkjenttidspunkt = jsonNode["godkjenttidspunkt"].asLocalDateTime(),
-            årsak = jsonNode["årsak"].takeUnless(JsonNode::isMissingOrNull)?.asText(),
-            begrunnelser = jsonNode["begrunnelser"].takeUnless(JsonNode::isMissingOrNull)?.map(JsonNode::asText),
-            kommentar = jsonNode["kommentar"].takeUnless(JsonNode::isMissingOrNull)?.asText(),
-            saksbehandleroverstyringer = jsonNode["saksbehandleroverstyringer"].takeUnless(JsonNode::isMissingOrNull)
-            ?.map {
-                UUID.fromString(it.asText())
-            } ?: emptyList(),
-            oppgaveId = jsonNode["oppgaveId"].asLong(),
-            json = json
-        )
-    }
-
     fun overstyringInntektOgRefusjon(
         id: UUID,
         fødselsnummer: String,
