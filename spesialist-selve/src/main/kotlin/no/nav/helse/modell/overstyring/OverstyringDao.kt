@@ -8,6 +8,7 @@ import kotliquery.queryOf
 import kotliquery.sessionOf
 import no.nav.helse.HelseDao
 import no.nav.helse.db.OverstyrtTidslinjeForDatabase
+import no.nav.helse.db.OverstyrteArbeidsforholdForDatabase
 import no.nav.helse.objectMapper
 import no.nav.helse.spesialist.api.overstyring.OverstyringType
 import org.intellij.lang.annotations.Language
@@ -364,6 +365,23 @@ class OverstyringDao(private val dataSource: DataSource) : HelseDao(dataSource) 
                     )
                 }
             }
+        }
+    }
+
+    fun persisterOverstyrtArbeidsforhold(tilDatabase: OverstyrteArbeidsforholdForDatabase, saksbehandlerOid: UUID) {
+        tilDatabase.overstyrteArbeidsforhold.forEach {
+            persisterOverstyringArbeidsforhold(
+                hendelseId = UUID.randomUUID(),
+                eksternHendelseId = UUID.randomUUID(),
+                fødselsnummer = tilDatabase.fødselsnummer,
+                organisasjonsnummer = it.organisasjonsnummer,
+                begrunnelse = it.begrunnelse,
+                forklaring = it.forklaring,
+                deaktivert = it.deaktivert,
+                skjæringstidspunkt = tilDatabase.skjæringstidspunkt,
+                saksbehandlerRef = saksbehandlerOid,
+                tidspunkt = tilDatabase.opprettet
+            )
         }
     }
 

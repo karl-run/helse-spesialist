@@ -7,9 +7,6 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
-import no.nav.helse.rapids_rivers.asLocalDate
-import no.nav.helse.rapids_rivers.asLocalDateTime
-import no.nav.helse.spesialist.api.saksbehandler.handlinger.OverstyrArbeidsforholdHandlingFraApi
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -55,17 +52,6 @@ internal class OverstyringArbeidsforholdRiver(
         mediator.overstyringArbeidsforhold(
             id = UUID.fromString(packet["@id"].asText()),
             fødselsnummer = packet["fødselsnummer"].asText(),
-            oid = UUID.fromString(packet["saksbehandlerOid"].asText()),
-            overstyrteArbeidsforhold = packet["overstyrteArbeidsforhold"].map {
-                OverstyrArbeidsforholdHandlingFraApi.ArbeidsforholdFraApi(
-                    it["orgnummer"].asText(),
-                    it["deaktivert"].asBoolean(),
-                    it["begrunnelse"].asText(),
-                    it["forklaring"].asText()
-                )
-            },
-            skjæringstidspunkt = packet["skjæringstidspunkt"].asLocalDate(),
-            opprettet = packet["@opprettet"].asLocalDateTime(),
             json = packet.toJson(),
             context = context
         )

@@ -83,7 +83,6 @@ import no.nav.helse.spesialist.api.abonnement.OpptegnelseDao
 import no.nav.helse.spesialist.api.notat.NotatDao
 import no.nav.helse.spesialist.api.notat.NotatMediator
 import no.nav.helse.spesialist.api.periodehistorikk.PeriodehistorikkDao
-import no.nav.helse.spesialist.api.saksbehandler.handlinger.OverstyrArbeidsforholdHandlingFraApi
 import no.nav.helse.spesialist.api.snapshot.SnapshotClient
 import no.nav.helse.spesialist.api.tildeling.TildelingDao
 import org.slf4j.LoggerFactory
@@ -404,18 +403,10 @@ internal class Hendelsefabrikk(
     fun overstyringArbeidsforhold(
         id: UUID,
         fødselsnummer: String,
-        oid: UUID,
-        overstyrteArbeidsforhold: List<OverstyrArbeidsforholdHandlingFraApi.ArbeidsforholdFraApi>,
-        skjæringstidspunkt: LocalDate,
-        opprettet: LocalDateTime,
         json: String,
     ) = OverstyringArbeidsforhold(
         id = id,
         fødselsnummer = fødselsnummer,
-        oid = oid,
-        overstyrteArbeidsforhold = overstyrteArbeidsforhold,
-        skjæringstidspunkt = skjæringstidspunkt,
-        opprettet = opprettet,
         json = json,
         overstyringDao = overstyringDao,
         overstyringMediator = overstyringMediator,

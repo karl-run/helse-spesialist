@@ -93,7 +93,6 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.registrerTidsbrukForGodkjenningsbehov
 import no.nav.helse.registrerTidsbrukForHendelse
 import no.nav.helse.spesialist.api.Personhåndterer
-import no.nav.helse.spesialist.api.saksbehandler.handlinger.OverstyrArbeidsforholdHandlingFraApi
 import org.slf4j.LoggerFactory
 
 internal class HendelseMediator(
@@ -507,10 +506,6 @@ internal class HendelseMediator(
     fun overstyringArbeidsforhold(
         id: UUID,
         fødselsnummer: String,
-        oid: UUID,
-        overstyrteArbeidsforhold: List<OverstyrArbeidsforholdHandlingFraApi.ArbeidsforholdFraApi>,
-        skjæringstidspunkt: LocalDate,
-        opprettet: LocalDateTime,
         json: String,
         context: MessageContext,
     ) {
@@ -518,10 +513,6 @@ internal class HendelseMediator(
             fødselsnummer, hendelsefabrikk.overstyringArbeidsforhold(
                 id = id,
                 fødselsnummer = fødselsnummer,
-                oid = oid,
-                overstyrteArbeidsforhold = overstyrteArbeidsforhold,
-                skjæringstidspunkt = skjæringstidspunkt,
-                opprettet = opprettet,
                 json = json
             ), context
         )
