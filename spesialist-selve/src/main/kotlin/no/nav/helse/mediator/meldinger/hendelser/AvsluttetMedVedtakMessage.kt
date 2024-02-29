@@ -1,5 +1,6 @@
 package no.nav.helse.mediator.meldinger.hendelser
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.treeToValue
 import java.util.UUID
@@ -11,11 +12,13 @@ import no.nav.helse.modell.sykefraværstilfelle.Sykefraværstilfelle
 import no.nav.helse.modell.vedtaksperiode.vedtak.AvsluttetMedVedtak
 import no.nav.helse.modell.vedtaksperiode.vedtak.Faktatype
 import no.nav.helse.modell.vedtaksperiode.vedtak.Sykepengegrunnlagsfakta
-import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.asLocalDate
 import no.nav.helse.rapids_rivers.asLocalDateTime
 
-internal class AvsluttetMedVedtakMessage(packet: JsonMessage, private val avviksvurderingDao: AvviksvurderingDao) {
+// Denne skal ikke ta inn JsonNode, det er bare for å vise at det hadde vært kjekt å kunne opprette *Message-klasser
+// fra testene - men denne må ta inn JsonMessage fordi ellers får vi ikke nyttiggjort oss av rapids-and-rivers sitt
+// opplegg som sørger for at alle felter som leses ut må deklareres i validate-oppsettet i riveren.
+internal class AvsluttetMedVedtakMessage(packet: JsonNode, private val avviksvurderingDao: AvviksvurderingDao) {
 
     private val fødselsnummer = packet["fødselsnummer"].asText()
     private val aktørId = packet["aktørId"].asText()
@@ -61,8 +64,8 @@ internal class AvsluttetMedVedtakMessage(packet: JsonMessage, private val avviks
         sykefraværstilfelle.håndter(avsluttetMedVedtak)
     }
 
-    private fun faktatype(packet: JsonMessage): Faktatype {
-        return when (val fastsattString = packet["sykepengegrunnlagsfakta.fastsatt"].asText()) {
+    private fun faktatype(packet: JsonNode): Faktatype {
+        return when (val fastsattString = packet["sykepengegrunnlagsfakta"]["fastsatt"].asText()) {
             "EtterSkjønn" -> Faktatype.ETTER_SKJØNN
             "EtterHovedregel" -> Faktatype.ETTER_HOVEDREGEL
             "IInfotrygd" -> Faktatype.I_INFOTRYGD
@@ -70,9 +73,9 @@ internal class AvsluttetMedVedtakMessage(packet: JsonMessage, private val avviks
         }
     }
 
-    private fun sykepengegrunnlagsfakta(packet: JsonMessage, faktatype: Faktatype): Sykepengegrunnlagsfakta {
+    private fun sykepengegrunnlagsfakta(packet: JsonNode, faktatype: Faktatype): Sykepengegrunnlagsfakta {
         if (faktatype == Faktatype.I_INFOTRYGD) return Sykepengegrunnlagsfakta.Infotrygd(
-            omregnetÅrsinntekt = packet["sykepengegrunnlagsfakta.omregnetÅrsinntekt"].asDouble(),
+            omregnetÅrsinntekt = packet["sykepengegrunnlagsfakta"]["omregnetÅrsinntekt"].asDouble(),
         )
 
         val avviksvurderingDto = finnAvviksvurdering().toDto()
@@ -82,13 +85,13 @@ internal class AvsluttetMedVedtakMessage(packet: JsonMessage, private val avviks
 
         return when (faktatype) {
             Faktatype.ETTER_SKJØNN -> Sykepengegrunnlagsfakta.Spleis.EtterSkjønn(
-                omregnetÅrsinntekt = packet["sykepengegrunnlagsfakta.omregnetÅrsinntekt"].asDouble(),
+                omregnetÅrsinntekt = packet["sykepengegrunnlagsfakta"]["omregnetÅrsinntekt"].asDouble(),
                 innrapportertÅrsinntekt = innrapportertÅrsinntekt,
                 avviksprosent = avviksprosent,
-                seksG = packet["sykepengegrunnlagsfakta.6G"].asDouble(),
-                skjønnsfastsatt = packet["sykepengegrunnlagsfakta.skjønnsfastsatt"].asDouble(),
-                tags = packet["sykepengegrunnlagsfakta.tags"].map { it.asText() },
-                arbeidsgivere = packet["sykepengegrunnlagsfakta.arbeidsgivere"].map { arbeidsgiver ->
+                seksG = packet["sykepengegrunnlagsfakta"]["6G"].asDouble(),
+                skjønnsfastsatt = packet["sykepengegrunnlagsfakta"]["skjønnsfastsatt"].asDouble(),
+                tags = packet["sykepengegrunnlagsfakta"]["tags"].map { it.asText() },
+                arbeidsgivere = packet["sykepengegrunnlagsfakta"]["arbeidsgivere"].map { arbeidsgiver ->
                     val organisasjonsnummer = arbeidsgiver["arbeidsgiver"].asText()
                     Sykepengegrunnlagsfakta.Spleis.Arbeidsgiver.EtterSkjønn(
                         organisasjonsnummer = organisasjonsnummer,
@@ -100,12 +103,12 @@ internal class AvsluttetMedVedtakMessage(packet: JsonMessage, private val avviks
             )
 
             Faktatype.ETTER_HOVEDREGEL -> Sykepengegrunnlagsfakta.Spleis.EtterHovedregel(
-                omregnetÅrsinntekt = packet["sykepengegrunnlagsfakta.omregnetÅrsinntekt"].asDouble(),
+                omregnetÅrsinntekt = packet["sykepengegrunnlagsfakta"]["omregnetÅrsinntekt"].asDouble(),
                 innrapportertÅrsinntekt = innrapportertÅrsinntekt,
                 avviksprosent = avviksprosent,
-                seksG = packet["sykepengegrunnlagsfakta.6G"].asDouble(),
-                tags = packet["sykepengegrunnlagsfakta.tags"].map { it.asText() },
-                arbeidsgivere = packet["sykepengegrunnlagsfakta.arbeidsgivere"].map { arbeidsgiver ->
+                seksG = packet["sykepengegrunnlagsfakta"]["6G"].asDouble(),
+                tags = packet["sykepengegrunnlagsfakta"]["tags"].map { it.asText() },
+                arbeidsgivere = packet["sykepengegrunnlagsfakta"]["arbeidsgivere"].map { arbeidsgiver ->
                     val organisasjonsnummer = arbeidsgiver["arbeidsgiver"].asText()
                     Sykepengegrunnlagsfakta.Spleis.Arbeidsgiver.EtterHovedregel(
                         organisasjonsnummer = organisasjonsnummer,
