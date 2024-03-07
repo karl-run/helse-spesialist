@@ -66,14 +66,10 @@ internal class GenerasjonDaoTest : DatabaseIntegrationTest() {
         val varselId = UUID.randomUUID()
         val varselOpprettet = LocalDateTime.now()
         val varselstatus = VarselStatusDto.AKTIV
-        val generasjonDto = GenerasjonDto(
+        val generasjonDto = nyGenerasjonDto(
             id = id,
             vedtaksperiodeId = vedtaksperiodeId,
             utbetalingId = utbetalingId,
-            skjæringstidspunkt = 1.januar,
-            fom = 1.januar,
-            tom = 31.januar,
-            tilstand = TilstandDto.Ulåst,
             varsler = listOf(
                 VarselDto(varselId, "RV_IM_1", varselOpprettet, vedtaksperiodeId, varselstatus)
             )
@@ -122,16 +118,7 @@ internal class GenerasjonDaoTest : DatabaseIntegrationTest() {
         val id = UUID.randomUUID()
         val vedtaksperiodeId = UUID.randomUUID()
         val nyUtbetalingId = UUID.randomUUID()
-        val generasjonDto = GenerasjonDto(
-            id = id,
-            vedtaksperiodeId = vedtaksperiodeId,
-            utbetalingId = UUID.randomUUID(),
-            skjæringstidspunkt = 1.januar,
-            fom = 1.januar,
-            tom = 31.januar,
-            tilstand = TilstandDto.Ulåst,
-            varsler = emptyList()
-        )
+        val generasjonDto = nyGenerasjonDto(vedtaksperiodeId, id)
         generasjonDao.lagre(generasjonDto)
         generasjonDao.lagre(generasjonDto.copy(utbetalingId = nyUtbetalingId, fom = 2.januar, tom = 30.januar, skjæringstidspunkt = 2.januar, tilstand = TilstandDto.Låst))
         val lagretGenerasjon = generasjonDao.finnGjeldendeGenerasjon(vedtaksperiodeId)
@@ -152,16 +139,7 @@ internal class GenerasjonDaoTest : DatabaseIntegrationTest() {
         val varselId = UUID.randomUUID()
         val varselOpprettet = LocalDateTime.now()
         val varselstatus = VarselStatusDto.AKTIV
-        val generasjonDto = GenerasjonDto(
-            id = id,
-            vedtaksperiodeId = vedtaksperiodeId,
-            utbetalingId = UUID.randomUUID(),
-            skjæringstidspunkt = 1.januar,
-            fom = 1.januar,
-            tom = 31.januar,
-            tilstand = TilstandDto.Ulåst,
-            varsler = emptyList()
-        )
+        val generasjonDto = nyGenerasjonDto(vedtaksperiodeId, id)
         generasjonDao.lagre(generasjonDto)
         generasjonDao.lagre(generasjonDto.copy(varsler = listOf(VarselDto(varselId, "RV_IM_1", varselOpprettet, vedtaksperiodeId, varselstatus))))
         val lagretGenerasjon = generasjonDao.finnGjeldendeGenerasjon(vedtaksperiodeId)
@@ -172,18 +150,11 @@ internal class GenerasjonDaoTest : DatabaseIntegrationTest() {
 
     @Test
     fun `oppdatere varsel`() {
-        val id = UUID.randomUUID()
         val vedtaksperiodeId = UUID.randomUUID()
         val varselId = UUID.randomUUID()
         val varselOpprettet = LocalDateTime.now()
-        val generasjonDto = GenerasjonDto(
-            id = id,
+        val generasjonDto = nyGenerasjonDto(
             vedtaksperiodeId = vedtaksperiodeId,
-            utbetalingId = UUID.randomUUID(),
-            skjæringstidspunkt = 1.januar,
-            fom = 1.januar,
-            tom = 31.januar,
-            tilstand = TilstandDto.Ulåst,
             varsler = listOf(VarselDto(varselId, "RV_IM_1", varselOpprettet, vedtaksperiodeId, VarselStatusDto.AKTIV))
         )
         generasjonDao.lagre(generasjonDto)
@@ -202,14 +173,9 @@ internal class GenerasjonDaoTest : DatabaseIntegrationTest() {
         val vedtaksperiodeId = UUID.randomUUID()
         val varselIdSomIkkeBlirSlettet = UUID.randomUUID()
         val varselOpprettetSomIkkeBlirSlettet = LocalDateTime.now()
-        val generasjonDto = GenerasjonDto(
-            id = id,
+        val generasjonDto = nyGenerasjonDto(
             vedtaksperiodeId = vedtaksperiodeId,
-            utbetalingId = UUID.randomUUID(),
-            skjæringstidspunkt = 1.januar,
-            fom = 1.januar,
-            tom = 31.januar,
-            tilstand = TilstandDto.Ulåst,
+            id = id,
             varsler = listOf(
                 VarselDto(varselIdSomIkkeBlirSlettet, "RV_IM_1",
                     varselOpprettetSomIkkeBlirSlettet, vedtaksperiodeId, VarselStatusDto.AKTIV),
@@ -232,18 +198,11 @@ internal class GenerasjonDaoTest : DatabaseIntegrationTest() {
 
     @Test
     fun `fjerne varsel slik at det ikke er noen varsler igjen på generasjonen`() {
-        val id = UUID.randomUUID()
         val vedtaksperiodeId = UUID.randomUUID()
         val varselId = UUID.randomUUID()
         val varselOpprettet = LocalDateTime.now()
-        val generasjonDto = GenerasjonDto(
-            id = id,
+        val generasjonDto = nyGenerasjonDto(
             vedtaksperiodeId = vedtaksperiodeId,
-            utbetalingId = UUID.randomUUID(),
-            skjæringstidspunkt = 1.januar,
-            fom = 1.januar,
-            tom = 31.januar,
-            tilstand = TilstandDto.Ulåst,
             varsler = listOf(VarselDto(varselId, "RV_IM_1", varselOpprettet, vedtaksperiodeId, VarselStatusDto.AKTIV))
         )
         generasjonDao.lagre(generasjonDto)
@@ -556,20 +515,24 @@ internal class GenerasjonDaoTest : DatabaseIntegrationTest() {
         vedtaksperiodeId: UUID = UUID.randomUUID(),
         id: UUID = UUID.randomUUID(),
         utbetalingId: UUID? = UUID.randomUUID(),
+        spleisBehandlingId: UUID? = UUID.randomUUID(),
         fom: LocalDate = 1.januar,
         tom: LocalDate = 31.januar,
         skjæringstidspunkt: LocalDate = 1.januar,
         tilstand: TilstandDto = TilstandDto.Ulåst,
+        tags: List<String> = emptyList(),
         varsler: List<VarselDto> = emptyList()
         ): GenerasjonDto {
         return GenerasjonDto(
             id = id,
             vedtaksperiodeId = vedtaksperiodeId,
             utbetalingId = utbetalingId,
+            spleisBehandlingId = spleisBehandlingId,
             skjæringstidspunkt = skjæringstidspunkt,
             fom = fom,
             tom = tom,
             tilstand = tilstand,
+            tags = tags,
             varsler = varsler
         )
     }

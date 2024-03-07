@@ -118,6 +118,19 @@ internal class GenerasjonRepositoryTest : AbstractDatabaseTest() {
     }
 
     @Test
+    fun `oppdaterer behandlingsinformasjon`() {
+        val vedtaksperiodeId = UUID.randomUUID()
+
+        val generasjon = Generasjon(UUID.randomUUID(), vedtaksperiodeId, 1.januar, 31.januar, 1.januar)
+        generasjon.registrer(repository)
+        generasjon.håndterVedtaksperiodeOpprettet(UUID.randomUUID())
+        val spleisBehandlingId = UUID.randomUUID()
+        generasjon.håndterOppdatertBehandlingsinformasjon(listOf("tag 1"), spleisBehandlingId)
+
+        assertBehandlingsinformasjon(vedtaksperiodeId, listOf("tag 1"), spleisBehandlingId)
+    }
+
+    @Test
     fun `kan ikke knytte utbetalingId til ferdig behandlet generasjon som ikke har utbetalingId`() {
         val generasjonId = UUID.randomUUID()
         val vedtaksperiodeId = UUID.randomUUID()
@@ -235,5 +248,24 @@ internal class GenerasjonRepositoryTest : AbstractDatabaseTest() {
         }
 
         assertEquals(forventetUtbetalingId, utbetalingId)
+    }
+
+    private fun assertBehandlingsinformasjon(
+        vedtaksperiodeId: UUID,
+        forventedeTags: List<String>,
+        forventetSpleisBehandlingId: UUID
+    ) {
+        @Language("PostgreSQL")
+        val query =
+            "SELECT tags, spleis_behandling_id FROM selve_vedtaksperiode_generasjon WHERE vedtaksperiode_id = :vedtaksperiodeId;"
+
+        val (tags, spleisBehandlingId) = sessionOf(dataSource).use { session ->
+            session.run(queryOf(query, mapOf("vedtaksperiodeId" to vedtaksperiodeId))
+                .map { it.array<String>("tags").toList() to it.uuid("spleis_behandling_id") }.asSingle
+            )
+        }!!
+
+        assertEquals(forventedeTags, tags)
+        assertEquals(forventetSpleisBehandlingId, spleisBehandlingId)
     }
 }
