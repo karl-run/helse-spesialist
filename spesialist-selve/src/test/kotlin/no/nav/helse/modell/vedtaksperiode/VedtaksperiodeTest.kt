@@ -22,6 +22,16 @@ class VedtaksperiodeTest {
     }
 
     @Test
+    fun `vedtaksperioden forkastes`() {
+        val vedtaksperiodeId = UUID.randomUUID()
+        val vedtaksperiode = nyVedtaksperiode(vedtaksperiodeId)
+        vedtaksperiode.vedtaksperiodeForkastet()
+
+        val vedtaksperiodeDto = vedtaksperiode.toDto()
+        assertEquals(true, vedtaksperiodeDto.forkastet)
+    }
+
+    @Test
     fun `ignorerer behandling som ikke er relevant for vedtaksperioden`() {
         val vedtaksperiodeId = UUID.randomUUID()
         val annenVedtaksperiodeId = UUID.randomUUID()

@@ -1,6 +1,7 @@
 package no.nav.helse.modell.vedtaksperiode
 
 import java.util.UUID
+import no.nav.helse.mediator.Kommandofabrikk
 import no.nav.helse.mediator.meldinger.Vedtaksperiodemelding
 import no.nav.helse.mediator.oppgave.OppgaveMediator
 import no.nav.helse.modell.CommandContextDao
@@ -10,6 +11,7 @@ import no.nav.helse.modell.kommando.AvbrytCommand
 import no.nav.helse.modell.kommando.Command
 import no.nav.helse.modell.kommando.MacroCommand
 import no.nav.helse.modell.kommando.OppdaterSnapshotCommand
+import no.nav.helse.modell.person.Person
 import no.nav.helse.modell.person.PersonDao
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.spesialist.api.snapshot.SnapshotClient
@@ -30,6 +32,11 @@ internal class VedtaksperiodeForkastet private constructor(
     override fun fødselsnummer() = fødselsnummer
     override fun vedtaksperiodeId() = vedtaksperiodeId
     override fun toJson() = json
+
+    override fun behandle(person: Person, kommandofabrikk: Kommandofabrikk) {
+        person.vedtaksperiodeForkastet(vedtaksperiodeId)
+        kommandofabrikk.iverksettVedtaksperiodeForkastet(this)
+    }
 }
 
 internal class VedtaksperiodeForkastetCommand(

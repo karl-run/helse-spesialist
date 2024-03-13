@@ -73,7 +73,6 @@ import no.nav.helse.modell.vedtaksperiode.GenerasjonDao
 import no.nav.helse.modell.vedtaksperiode.GenerasjonRepository
 import no.nav.helse.modell.vedtaksperiode.Godkjenningsbehov
 import no.nav.helse.modell.vedtaksperiode.VedtaksperiodeEndret
-import no.nav.helse.modell.vedtaksperiode.VedtaksperiodeForkastet
 import no.nav.helse.modell.vedtaksperiode.VedtaksperiodeNyUtbetaling
 import no.nav.helse.modell.vedtaksperiode.VedtaksperiodeReberegnet
 import no.nav.helse.modell.vedtaksperiode.vedtak.Saksbehandlerløsning
@@ -239,18 +238,6 @@ internal class HendelseMediator(
         kommandofabrikk.avviksvurdering(avviksvurdering)
     }
 
-    fun vedtaksperiodeForkastet(
-        hendelse: VedtaksperiodeForkastet,
-        context: MessageContext,
-    ) {
-        val vedtaksperiodeId = hendelse.vedtaksperiodeId()
-        if (vedtakDao.finnVedtakId(vedtaksperiodeId) == null) {
-            logg.info("ignorerer hendelseId=${hendelse.id} fordi vi ikke kjenner til $vedtaksperiodeId")
-            return
-        }
-        return håndter(hendelse, context)
-    }
-
     fun godkjenningsbehov(
         godkjenningsbehov: Godkjenningsbehov,
         context: MessageContext,
@@ -405,21 +392,39 @@ internal class HendelseMediator(
         opprett(commandContextDao, hendelse.id)
     }
 
-    internal fun mottaMelding(melding: Personmelding) {
-        withMDC(mapOf("meldingId" to melding.id.toString())) {
-            logg.info("Melding ${melding::class.simpleName} mottatt")
-            sikkerlogg.info("Melding ${melding::class.simpleName} mottatt")
+    internal fun mottaMelding(melding: Personmelding, context: MessageContext) {
+        val meldingnavn = requireNotNull(melding::class.simpleName)
+        withMDC(
+            mapOf(
+                "meldingId" to melding.id.toString(),
+                "meldingnavn" to meldingnavn
+            )
+        ) {
+            val utgåendeMeldingerMediator = UtgåendeMeldingerMediator()
+            kommandofabrikk.registrerObserver(utgåendeMeldingerMediator)
 
-            personRepository.brukPersonHvisFinnes(melding.fødselsnummer()) {
-                logg.info("Personen finnes i databasen, behandler melding ${melding::class.simpleName}")
-                sikkerlogg.info("Personen finnes i databasen, behandler melding ${melding::class.simpleName}")
+            logg.info("Melding $meldingnavn mottatt")
+            sikkerlogg.info("Melding $meldingnavn mottatt")
 
-                melding.behandle(this, kommandofabrikk)
+            try {
+                personRepository.brukPersonHvisFinnes(melding.fødselsnummer()) {
+                    logg.info("Personen finnes i databasen, behandler melding $meldingnavn")
+                    sikkerlogg.info("Personen finnes i databasen, behandler melding $meldingnavn")
+
+                    melding.behandle(this, kommandofabrikk)
+                }
+                if (melding is VedtakFattet) melding.doFinally(vedtakDao) // Midlertidig frem til spesialsak ikke er en ting lenger
+                utgåendeMeldingerMediator.håndter(melding, context)
             }
-            if (melding is VedtakFattet) melding.doFinally(vedtakDao) // Midlertidig frem til spesialsak ikke er en ting lenger
-
-            logg.info("Melding ${melding::class.simpleName} lest")
-            sikkerlogg.info("Melding ${melding::class.simpleName} lest")
+            catch (e: Exception) {
+                logg.error("Feil ved behandling av melding $meldingnavn", e.message, e)
+                throw e
+            }
+            finally {
+                logg.info("Melding $meldingnavn lest")
+                sikkerlogg.info("Melding $meldingnavn lest")
+                kommandofabrikk.avregistrerObserver(utgåendeMeldingerMediator)
+            }
         }
     }
 
@@ -465,7 +470,6 @@ internal class HendelseMediator(
                 is UtbetalingAnnullert -> iverksett(kommandofabrikk.utbetalingAnnullert(melding), melding.id, commandContext)
                 is UtbetalingEndret -> iverksett(kommandofabrikk.utbetalingEndret(melding), melding.id, commandContext)
                 is VedtaksperiodeEndret -> iverksett(kommandofabrikk.vedtaksperiodeEndret(melding), melding.id, commandContext)
-                is VedtaksperiodeForkastet -> iverksett(kommandofabrikk.vedtaksperiodeForkastet(melding), melding.id, commandContext)
                 is Godkjenningsbehov -> iverksett(kommandofabrikk.godkjenningsbehov(melding), melding.id, commandContext)
                 is Saksbehandlerløsning -> iverksett(kommandofabrikk.utbetalingsgodkjenning(melding), melding.id, commandContext)
                 else -> throw IllegalArgumentException("Personhendelse må håndteres")
