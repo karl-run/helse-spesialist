@@ -3,7 +3,7 @@ package no.nav.helse.mediator.meldinger
 import io.mockk.mockk
 import io.mockk.verify
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 import no.nav.helse.mediator.MeldingMediator
 import no.nav.helse.modell.vedtaksperiode.vedtak.VedtakFattet
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -22,7 +22,7 @@ internal class VedtakFattetRiverTest {
     @Test
     fun `Leser inn vedtak_fattet-event`() {
         testRapid.sendTestMessage(event())
-        verify(exactly = 1) { mediator.mottaMelding(any<VedtakFattet>()) }
+        verify(exactly = 1) { mediator.mottaMelding(any<VedtakFattet>(), any()) }
     }
 
     @Language("JSON")

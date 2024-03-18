@@ -30,6 +30,10 @@ internal class Vedtaksperiode private constructor(
         deaktiverVarselMedKode("RV_SØ_3")
     }
 
+    internal fun vedtaksperiodeForkastet() {
+        forkastet = true
+    }
+
     private fun deaktiverVarselMedKode(varselkode: String) {
         gjeldendeGenerasjon.deaktiverVarsel(varselkode)
     }

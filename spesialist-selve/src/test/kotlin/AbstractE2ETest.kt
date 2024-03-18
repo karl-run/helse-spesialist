@@ -1517,6 +1517,10 @@ internal abstract class AbstractE2ETest : AbstractDatabaseTest() {
         assertEquals(0, vedtak(vedtaksperiodeId))
     }
 
+    protected fun assertVedtaksperiodeForkastet(vedtaksperiodeId: UUID) {
+        assertEquals(1, forkastetVedtak(vedtaksperiodeId))
+    }
+
     protected fun assertPersonEksisterer(fødselsnummer: String, aktørId: String) {
         assertEquals(
             1,
@@ -1674,6 +1678,16 @@ internal abstract class AbstractE2ETest : AbstractDatabaseTest() {
         return sessionOf(dataSource).use { session ->
             @Language("PostgreSQL")
             val query = "SELECT COUNT(*) FROM vedtak WHERE vedtaksperiode_id = ?"
+            requireNotNull(
+                session.run(queryOf(query, vedtaksperiodeId).map { row -> row.int(1) }.asSingle)
+            )
+        }
+    }
+
+    private fun forkastetVedtak(vedtaksperiodeId: UUID): Int {
+        return sessionOf(dataSource).use { session ->
+            @Language("PostgreSQL")
+            val query = "SELECT COUNT(*) FROM vedtak WHERE vedtaksperiode_id = ? and forkastet = true"
             requireNotNull(
                 session.run(queryOf(query, vedtaksperiodeId).map { row -> row.int(1) }.asSingle)
             )

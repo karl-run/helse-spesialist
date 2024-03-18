@@ -9,7 +9,6 @@ import no.nav.helse.Testdata.snapshot
 import no.nav.helse.mediator.oppgave.OppgaveMediator
 import no.nav.helse.modell.CommandContextDao
 import no.nav.helse.modell.SnapshotDao
-import no.nav.helse.modell.VedtakDao
 import no.nav.helse.modell.kommando.CommandContext
 import no.nav.helse.modell.person.PersonDao
 import no.nav.helse.modell.vedtaksperiode.VedtaksperiodeForkastetCommand
@@ -28,27 +27,25 @@ internal class VedtaksperiodeForkastetCommandTest {
     }
 
     private val commandContextDao = mockk<CommandContextDao>(relaxed = true)
-    private val vedtakDao = mockk<VedtakDao>(relaxed = true)
     private val personDao = mockk<PersonDao>(relaxed = true)
     private val snapshotDao = mockk<SnapshotDao>(relaxed = true)
     private val graphQLClient = mockk<SnapshotClient>(relaxed = true)
     private val oppgaveMediator = mockk<OppgaveMediator>(relaxed = true)
     private val context = CommandContext(CONTEXT)
     private val vedtaksperiodeForkastetCommand = VedtaksperiodeForkastetCommand(
-        id = HENDELSE,
-        vedtaksperiodeId = VEDTAKSPERIODE,
         fødselsnummer = FNR,
-        commandContextDao = commandContextDao,
-        oppgaveMediator = oppgaveMediator,
-        snapshotClient = graphQLClient,
-        snapshotDao = snapshotDao,
+        vedtaksperiodeId = VEDTAKSPERIODE,
+        id = HENDELSE,
         personDao = personDao,
-        vedtakDao = vedtakDao
+        commandContextDao = commandContextDao,
+        snapshotDao = snapshotDao,
+        snapshotClient = graphQLClient,
+        oppgaveMediator = oppgaveMediator
     )
 
     @BeforeEach
     fun setup() {
-        clearMocks(commandContextDao, vedtakDao, snapshotDao, graphQLClient)
+        clearMocks(commandContextDao, snapshotDao, graphQLClient)
     }
 
     @Test
@@ -60,6 +57,5 @@ internal class VedtaksperiodeForkastetCommandTest {
         assertTrue(vedtaksperiodeForkastetCommand.execute(context))
         verify(exactly = 1) { commandContextDao.avbryt(VEDTAKSPERIODE, CONTEXT) }
         verify(exactly = 1) { snapshotDao.lagre(FNR, snapshot.data!!.person!!) }
-        verify(exactly = 1) { vedtakDao.markerForkastet(VEDTAKSPERIODE, HENDELSE) }
     }
 }

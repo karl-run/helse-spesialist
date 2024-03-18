@@ -86,6 +86,8 @@ import no.nav.helse.registrerTidsbrukForGodkjenningsbehov
 import no.nav.helse.registrerTidsbrukForHendelse
 import no.nav.helse.spesialist.api.Personhåndterer
 import org.slf4j.LoggerFactory
+import kotlin.reflect.KClass
+import kotlin.reflect.full.declaredMemberFunctions
 
 internal class MeldingMediator(
     private val dataSource: DataSource,
@@ -237,18 +239,6 @@ internal class MeldingMediator(
 
     internal fun håndter(avviksvurdering: AvviksvurderingDto) {
         kommandofabrikk.avviksvurdering(avviksvurdering)
-    }
-
-    fun vedtaksperiodeForkastet(
-        hendelse: VedtaksperiodeForkastet,
-        context: MessageContext,
-    ) {
-        val vedtaksperiodeId = hendelse.vedtaksperiodeId()
-        if (vedtakDao.finnVedtakId(vedtaksperiodeId) == null) {
-            logg.info("ignorerer hendelseId=${hendelse.id} fordi vi ikke kjenner til $vedtaksperiodeId")
-            return
-        }
-        return håndter(hendelse, context)
     }
 
     fun godkjenningsbehov(
@@ -404,8 +394,13 @@ internal class MeldingMediator(
         opprett(commandContextDao, hendelse.id)
     }
 
-    internal fun mottaMelding(melding: Personmelding) {
+    private fun medEksisterendeKontekst(commandContext: CommandContext) {
+         kommandofabrikk.eksisterendeKontekst(commandContext)
+    }
+
+    internal fun mottaMelding(melding: Personmelding, messageContext: MessageContext) {
         val meldingnavn = requireNotNull(melding::class.simpleName)
+        val utgåendeMeldingerMediator = UtgåendeMeldingerMediator()
         withMDC(
             mapOf(
                 "meldingId" to melding.id.toString(),
@@ -416,6 +411,7 @@ internal class MeldingMediator(
             sikkerlogg.info("Melding $meldingnavn mottatt")
 
             try {
+                kommandofabrikk.nyObserver(utgåendeMeldingerMediator)
                 personRepository.brukPersonHvisFinnes(melding.fødselsnummer()) {
                     logg.info("Personen finnes i databasen, behandler melding $meldingnavn")
                     sikkerlogg.info("Personen finnes i databasen, behandler melding $meldingnavn")
@@ -423,16 +419,19 @@ internal class MeldingMediator(
                     melding.behandle(this, kommandofabrikk)
                 }
                 if (melding is VedtakFattet) melding.doFinally(vedtakDao) // Midlertidig frem til spesialsak ikke er en ting lenger
+                utgåendeMeldingerMediator.håndter(melding, messageContext)
             } catch (e: Exception) {
                 logg.error("Feil ved behandling av melding $meldingnavn", e.message, e)
                 throw e
             } finally {
+                kommandofabrikk.nullstillEksisterendeKontekst()
                 logg.info("Melding $meldingnavn lest")
                 sikkerlogg.info("Melding $meldingnavn lest")
             }
         }
     }
 
+    @Deprecated("Bruk mottaMelding i stedet, som delegerer til meldingen for å avgjøre hva som skal skje videre")
     internal fun håndter(fødselsnummer: String, melding: Personmelding, messageContext: MessageContext) {
         withMDC(mapOf("meldingId" to melding.id.toString())) {
             if (personDao.findPersonByFødselsnummer(fødselsnummer) == null) {
@@ -443,6 +442,7 @@ internal class MeldingMediator(
         }
     }
 
+    @Deprecated("Bruk mottaMelding i stedet, som delegerer til meldingen for å avgjøre hva som skal skje videre")
     internal fun håndter(melding: Personmelding, messageContext: MessageContext) {
         val contextId = UUID.randomUUID()
         withMDC(
@@ -457,6 +457,7 @@ internal class MeldingMediator(
         }
     }
 
+    @Deprecated("Bruk mottaMelding i stedet, som delegerer til meldingen for å avgjøre hva som skal skje videre")
     private fun håndter(melding: Personmelding, commandContext: CommandContext, messageContext: MessageContext) {
         val utgåendeMeldingerMediator = UtgåendeMeldingerMediator()
         commandContext.nyObserver(utgåendeMeldingerMediator)
@@ -485,6 +486,7 @@ internal class MeldingMediator(
             logg.error("Feil ved behandling av melding $hendelsenavn", e.message, e)
             throw e
         } finally {
+            kommandofabrikk.nullstillEksisterendeKontekst()
             logg.info("Melding $hendelsenavn ferdigbehandlet")
         }
     }
@@ -511,7 +513,14 @@ internal class MeldingMediator(
         registrerTidsbrukForHendelse(hendelsenavn, kjøretidMs)
     }
 
-    private class Løsninger(
+    // TODO: Denne metoden skal fjernes så snart alle innkommende personmeldinger benytter seg av `mottaMelding` i stedet
+    // I følge google finnes det dessverre ikke noen bedre måte å sjekke om en metode er implementert på
+    private fun isMethodOverriddenInClass(className: KClass<*>, methodName: String): Boolean {
+        val method = className.declaredMemberFunctions.find { it.name == methodName }
+        return method != null
+    }
+
+    internal class Løsninger(
         private val messageContext: MessageContext,
         private val melding: Personmelding,
         private val contextId: UUID,
@@ -526,11 +535,15 @@ internal class MeldingMediator(
         fun fortsett(mediator: MeldingMediator, message: String) {
             logg.info("fortsetter utførelse av kommandokontekst som følge av løsninger på behov for ${melding::class.simpleName}")
             sikkerlogg.info("fortsetter utførelse av kommandokontekst som følge av løsninger på behov for ${melding::class.simpleName}\nInnkommende melding:\n\t$message")
-            mediator.håndter(melding, commandContext, messageContext)
+            mediator.medEksisterendeKontekst(commandContext)
+
+            // Det ble gjort et forsøk på å se om dette kunne løses annerledes, uten hell
+            if (mediator.isMethodOverriddenInClass(melding::class, "behandle")) mediator.mottaMelding(melding, messageContext)
+            else mediator.håndter(melding, commandContext, messageContext)
         }
     }
 
-    private class Påminnelse(
+    internal class Påminnelse(
         private val messageContext: MessageContext,
         private val melding: Personmelding,
         private val contextId: UUID,
@@ -544,6 +557,8 @@ internal class MeldingMediator(
 
         fun fortsett(mediator: MeldingMediator) {
             logg.info("fortsetter utførelse av kommandokontekst som følge av påminnelse")
+            mediator.medEksisterendeKontekst(commandContext)
+            mediator.mottaMelding(melding, messageContext)
             mediator.håndter(melding, commandContext, messageContext)
         }
     }

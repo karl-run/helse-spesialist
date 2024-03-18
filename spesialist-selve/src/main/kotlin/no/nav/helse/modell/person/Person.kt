@@ -1,5 +1,6 @@
 package no.nav.helse.modell.person
 
+import java.util.UUID
 import no.nav.helse.modell.vedtaksperiode.NyeVarsler
 import no.nav.helse.modell.vedtaksperiode.Periode
 import no.nav.helse.modell.vedtaksperiode.SpleisBehandling
@@ -25,6 +26,12 @@ class Person private constructor(
 
     fun mottaSpleisVedtaksperioder(perioder: List<SpleisVedtaksperiode>) {
         vedtaksperioder.forEach { it.håndter(perioder) }
+    }
+
+    fun vedtaksperiodeForkastet(vedtaksperiodeId: UUID) {
+        vedtaksperioder
+            .find { it.vedtaksperiodeId() == vedtaksperiodeId }
+            ?.vedtaksperiodeForkastet()
     }
 
     internal fun vedtakFattet(vedtakFattet: VedtakFattet) {
