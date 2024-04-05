@@ -15,8 +15,6 @@ import no.nav.helse.modell.vedtaksperiode.vedtak.Sykepengegrunnlagsfakta
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.asLocalDate
 import no.nav.helse.rapids_rivers.asLocalDateTime
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import java.util.UUID
 
 internal class AvsluttetMedVedtakMessage(
@@ -45,8 +43,6 @@ internal class AvsluttetMedVedtakMessage(
     private val inntekt = packet["inntekt"].asDouble()
     private val tags = packet["tags"].map { it.asText() }
     private val sykepengegrunnlagsfakta = sykepengegrunnlagsfakta(packet, faktatype(packet))
-    private val log = LoggerFactory.getLogger(this::class.java)
-    private val sikkerLogg: Logger = LoggerFactory.getLogger("tjenestekall")
 
     internal fun skjæringstidspunkt() = skjæringstidspunkt
 
@@ -81,12 +77,7 @@ internal class AvsluttetMedVedtakMessage(
         )
 
     internal fun sendInnTil(sykefraværstilfelle: Sykefraværstilfelle) {
-        val tags: List<String> =
-            generasjonDao.finnTagsFor(spleisBehandlingId) ?: emptyList<String>().also {
-                // Hypotese: Vi forventer en del av disse av disse frem til alle perioder har blitt påminnet, slik at spesialist kun fatter vedtak i tilfeller der tags eksisterte på godkjenningsbehovet
-                log.info("Ingen generasjon å hente tags fra med spleisBehandlingId: $spleisBehandlingId på vedtaksperiodeId: $vedtaksperiodeId")
-                sikkerLogg.info("Ingen generasjon å hente tags fra med spleisBehandlingId: $spleisBehandlingId på vedtaksperiodeId: $vedtaksperiodeId, json: ${toJson()}")
-            }
+        val tags: List<String> = generasjonDao.finnTagsFor(spleisBehandlingId)
         sykefraværstilfelle.håndter(avsluttetMedVedtak, tags)
     }
 

@@ -103,7 +103,7 @@ class GenerasjonDao(private val dataSource: DataSource) {
         }
     }
 
-    internal fun finnTagsFor(spleisBehandlingId: UUID): List<String>? {
+    internal fun finnTagsFor(spleisBehandlingId: UUID): List<String> {
         val tags =
             sessionOf(dataSource).use { session ->
                 @Language("PostgreSQL")
@@ -116,7 +116,7 @@ class GenerasjonDao(private val dataSource: DataSource) {
                     }.asSingle,
                 )
             }
-        return tags
+        return tags ?: emptyList()
     }
 
     internal fun lagre(generasjonDto: GenerasjonDto) {

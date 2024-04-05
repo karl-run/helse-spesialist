@@ -359,13 +359,6 @@ internal class GenerasjonDaoTest : DatabaseIntegrationTest() {
     }
 
     @Test
-    fun `mangler tags`() {
-        val tulleId = UUID.randomUUID()
-        val tags = generasjonDao.finnTagsFor(tulleId)
-        assertEquals(null, tags)
-    }
-
-    @Test
     fun `gir false tilbake dersom vi ikke finner noen generasjon`() {
         val funnet = generasjonDao.harGenerasjonFor(VEDTAKSPERIODE)
         assertFalse(funnet)
