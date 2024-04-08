@@ -68,6 +68,7 @@ class GenerasjonDao(private val dataSource: DataSource) {
                             "Åpen" -> TilstandDto.Åpen
                             "AvsluttetUtenUtbetaling" -> TilstandDto.AvsluttetUtenUtbetaling
                             "UtenUtbetalingMåVurderes" -> TilstandDto.UtenUtbetalingMåVurderes
+                            "KlarTilBehandling" -> TilstandDto.KlarTilBehandling
                             else -> throw IllegalArgumentException("$tilstand er ikke en gyldig generasjontilstand")
                         },
                     tags = row.array<String>("tags").toList(),
@@ -240,6 +241,7 @@ class GenerasjonDao(private val dataSource: DataSource) {
                             "Åpen" -> TilstandDto.Åpen
                             "AvsluttetUtenUtbetaling" -> TilstandDto.AvsluttetUtenUtbetaling
                             "UtenUtbetalingMåVurderes" -> TilstandDto.UtenUtbetalingMåVurderes
+                            "KlarTilBehandling" -> TilstandDto.KlarTilBehandling
                             else -> throw IllegalArgumentException("$tilstand er ikke en gyldig generasjontilstand")
                         },
                     tags = row.array<String>("tags").toList(),
@@ -534,7 +536,8 @@ class GenerasjonDao(private val dataSource: DataSource) {
         return sessionOf(dataSource).use { session ->
             session.run(
                 queryOf(
-                    query, mapOf("fodselsnummer" to fødselsnummer.toLong()),
+                    query,
+                    mapOf("fodselsnummer" to fødselsnummer.toLong()),
                 ).map { it.localDate("foersteFom") }.asSingle,
             ) ?: throw IllegalStateException("Forventet å kunne slå opp første kjente dag")
         }
