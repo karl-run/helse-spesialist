@@ -79,7 +79,7 @@ internal class Vedtaksperiode private constructor(
             .vedtaksperiodeId(vedtaksperiodeId)
         avsluttetUtenVedtak
             .byggMelding(sykepengevedtakBuilder)
-        person.supplerVedtakFattet(sykepengevedtakBuilder)
+        person.byggOgFattVedtak(sykepengevedtakBuilder)
     }
 
     internal fun vedtaksperiodeForkastet() {

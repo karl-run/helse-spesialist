@@ -66,7 +66,7 @@ class Person private constructor(
             ?.vedtaksperiodeForkastet()
     }
 
-    internal fun supplerVedtakFattet(sykepengevedtakBuilder: SykepengevedtakBuilder) {
+    internal fun byggOgFattVedtak(sykepengevedtakBuilder: SykepengevedtakBuilder) {
         sykepengevedtakBuilder
             .aktørId(aktørId)
             .fødselsnummer(fødselsnummer)
