@@ -27,7 +27,6 @@ import no.nav.helse.mediator.meldinger.VedtaksperiodeForkastetRiver
 import no.nav.helse.mediator.meldinger.VedtaksperiodeNyUtbetalingRiver
 import no.nav.helse.mediator.meldinger.VedtaksperiodeReberegnetRiver
 import no.nav.helse.mediator.meldinger.Vedtaksperiodemelding
-import no.nav.helse.mediator.meldinger.hendelser.AvsluttetMedVedtakMessage
 import no.nav.helse.mediator.meldinger.løsninger.ArbeidsforholdRiver
 import no.nav.helse.mediator.meldinger.løsninger.ArbeidsgiverRiver
 import no.nav.helse.mediator.meldinger.løsninger.DokumentRiver
@@ -145,7 +144,7 @@ internal class MeldingMediator(
             VarseldefinisjonRiver(it, this)
             VedtaksperiodeNyUtbetalingRiver(it, this)
             MetrikkRiver(it)
-            AvsluttetMedVedtakRiver(it, this, avviksvurderingDao, generasjonDao)
+            AvsluttetMedVedtakRiver(it, this, avviksvurderingDao)
             AvsluttetUtenVedtakRiver(it, this)
             MidnattRiver(it, this)
             BehandlingOpprettetRiver(it, this)
@@ -207,19 +206,6 @@ internal class MeldingMediator(
         if (varseldefinisjonDto.avviklet) {
             varselRepository.avvikleVarsel(varseldefinisjonDto)
         }
-    }
-
-    internal fun håndter(
-        avsluttetMedVedtakMessage: AvsluttetMedVedtakMessage,
-        messageContext: MessageContext,
-    ) {
-        val fødselsnummer = avsluttetMedVedtakMessage.fødselsnummer()
-        val skjæringstidspunkt = avsluttetMedVedtakMessage.skjæringstidspunkt()
-        val sykefraværstilfelle = kommandofabrikk.sykefraværstilfelle(fødselsnummer, skjæringstidspunkt)
-        val vedtakFattetMelder = VedtakFattetMelder(messageContext)
-        sykefraværstilfelle.registrer(vedtakFattetMelder)
-        avsluttetMedVedtakMessage.sendInnTil(sykefraværstilfelle)
-        vedtakFattetMelder.publiserUtgåendeMeldinger()
     }
 
     internal fun håndter(avviksvurdering: AvviksvurderingDto) {

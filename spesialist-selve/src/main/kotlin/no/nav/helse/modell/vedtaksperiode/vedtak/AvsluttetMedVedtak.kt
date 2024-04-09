@@ -44,4 +44,8 @@ internal class AvsluttetMedVedtak(
         vedtakBuilder.tags(tags)
         vedtakBuilder.sykepengegrunnlagsfakta(sykepengegrunnlagsfakta)
     }
+
+    fun spleisBehandlingId() = spleisBehandlingId
+
+    fun vedtaksperiodeId() = vedtaksperiodeId
 }

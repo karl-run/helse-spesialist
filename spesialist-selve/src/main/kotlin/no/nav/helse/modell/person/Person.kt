@@ -11,10 +11,12 @@ import no.nav.helse.modell.vedtaksperiode.Vedtaksperiode
 import no.nav.helse.modell.vedtaksperiode.VedtaksperiodeDto
 import no.nav.helse.modell.vedtaksperiode.VedtaksperiodeForkastet
 import no.nav.helse.modell.vedtaksperiode.VedtaksperiodeNyUtbetaling
+import no.nav.helse.modell.vedtaksperiode.vedtak.AvsluttetMedVedtak
 import no.nav.helse.modell.vedtaksperiode.vedtak.AvsluttetUtenVedtak
 import no.nav.helse.modell.vedtaksperiode.vedtak.SykepengevedtakBuilder
 import no.nav.helse.modell.vedtaksperiode.vedtak.VedtakFattet
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
 import java.util.UUID
 
 class Person private constructor(
@@ -61,6 +63,11 @@ class Person private constructor(
             ?.avsluttetUtenVedtak(this, avsluttetUtenVedtak)
     }
 
+    internal fun avsluttetMedVedtak(avsluttetMedVedtak: AvsluttetMedVedtak) {
+        finnVedtaksperiode(avsluttetMedVedtak.vedtaksperiodeId())
+            ?.avsluttetMedVedtak(this, avsluttetMedVedtak)
+    }
+
     internal fun vedtaksperiodeForkastet(vedtaksperiodeForkastet: VedtaksperiodeForkastet) {
         finnVedtaksperiode(vedtaksperiodeForkastet.vedtaksperiodeId())
             ?.vedtaksperiodeForkastet()
@@ -71,6 +78,13 @@ class Person private constructor(
             .aktørId(aktørId)
             .fødselsnummer(fødselsnummer)
         observers.forEach { it.vedtakFattet(sykepengevedtakBuilder.build()) }
+    }
+
+    internal fun byggVedtakMedSkjønnsfastsattSykepengegrunnlag(
+        skjæringstidspunkt: LocalDate,
+        sykepengevedtakBuilder: SykepengevedtakBuilder,
+    ) {
+        skjønnsfastsatteSykepengegrunnlag.byggVedtak(skjæringstidspunkt, sykepengevedtakBuilder)
     }
 
     fun nySpleisBehandling(spleisBehandling: SpleisBehandling) {

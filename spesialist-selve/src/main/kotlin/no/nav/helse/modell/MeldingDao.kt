@@ -6,26 +6,9 @@ import kotliquery.sessionOf
 import no.nav.helse.mediator.meldinger.AdressebeskyttelseEndret
 import no.nav.helse.mediator.meldinger.PersonmeldingOld
 import no.nav.helse.mediator.meldinger.VedtaksperiodemeldingOld
+import no.nav.helse.mediator.meldinger.hendelser.AvsluttetMedVedtakMessage
 import no.nav.helse.mediator.meldinger.hendelser.AvsluttetUtenVedtakMessage
-import no.nav.helse.modell.MeldingDao.Meldingtype.ADRESSEBESKYTTELSE_ENDRET
-import no.nav.helse.modell.MeldingDao.Meldingtype.AVSLUTTET_UTEN_VEDTAK
-import no.nav.helse.modell.MeldingDao.Meldingtype.BEHANDLING_OPPRETTET
-import no.nav.helse.modell.MeldingDao.Meldingtype.ENDRET_EGEN_ANSATT_STATUS
-import no.nav.helse.modell.MeldingDao.Meldingtype.GODKJENNING
-import no.nav.helse.modell.MeldingDao.Meldingtype.GODKJENT_TILBAKEDATERT_SYKMELDING
-import no.nav.helse.modell.MeldingDao.Meldingtype.GOSYS_OPPGAVE_ENDRET
-import no.nav.helse.modell.MeldingDao.Meldingtype.NYE_VARSLER
-import no.nav.helse.modell.MeldingDao.Meldingtype.OPPDATER_PERSONSNAPSHOT
-import no.nav.helse.modell.MeldingDao.Meldingtype.OVERSTYRING_IGANGSATT
-import no.nav.helse.modell.MeldingDao.Meldingtype.SAKSBEHANDLERLØSNING
-import no.nav.helse.modell.MeldingDao.Meldingtype.SØKNAD_SENDT
-import no.nav.helse.modell.MeldingDao.Meldingtype.UTBETALING_ANNULLERT
-import no.nav.helse.modell.MeldingDao.Meldingtype.UTBETALING_ENDRET
-import no.nav.helse.modell.MeldingDao.Meldingtype.VEDTAKSPERIODE_ENDRET
-import no.nav.helse.modell.MeldingDao.Meldingtype.VEDTAKSPERIODE_FORKASTET
-import no.nav.helse.modell.MeldingDao.Meldingtype.VEDTAKSPERIODE_NY_UTBETALING
-import no.nav.helse.modell.MeldingDao.Meldingtype.VEDTAKSPERIODE_REBEREGNET
-import no.nav.helse.modell.MeldingDao.Meldingtype.VEDTAK_FATTET
+import no.nav.helse.modell.MeldingDao.Meldingtype.*
 import no.nav.helse.modell.gosysoppgaver.GosysOppgaveEndret
 import no.nav.helse.modell.kommando.TilbakedateringBehandlet
 import no.nav.helse.modell.overstyring.OverstyringIgangsatt
@@ -268,6 +251,7 @@ internal class MeldingDao(private val dataSource: DataSource) {
             VEDTAKSPERIODE_NY_UTBETALING -> VedtaksperiodeNyUtbetaling(jsonNode)
             BEHANDLING_OPPRETTET -> BehandlingOpprettet(jsonNode)
             AVSLUTTET_UTEN_VEDTAK -> AvsluttetUtenVedtakMessage(jsonNode)
+            AVSLUTTET_MED_VEDTAK -> AvsluttetMedVedtakMessage(jsonNode)
         }
     }
 
@@ -292,6 +276,7 @@ internal class MeldingDao(private val dataSource: DataSource) {
             is TilbakedateringBehandlet -> GODKJENT_TILBAKEDATERT_SYKMELDING
             is BehandlingOpprettet -> BEHANDLING_OPPRETTET
             is AvsluttetUtenVedtakMessage -> AVSLUTTET_UTEN_VEDTAK
+            is AvsluttetMedVedtakMessage -> AVSLUTTET_MED_VEDTAK
             else -> throw IllegalArgumentException("ukjent meldingtype: ${melding::class.simpleName}")
         }
 
@@ -315,5 +300,6 @@ internal class MeldingDao(private val dataSource: DataSource) {
         VEDTAKSPERIODE_NY_UTBETALING,
         GODKJENT_TILBAKEDATERT_SYKMELDING,
         AVSLUTTET_UTEN_VEDTAK,
+        AVSLUTTET_MED_VEDTAK,
     }
 }

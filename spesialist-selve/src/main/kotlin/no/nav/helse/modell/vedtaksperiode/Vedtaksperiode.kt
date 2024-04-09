@@ -4,6 +4,7 @@ import no.nav.helse.modell.person.Person
 import no.nav.helse.modell.utbetaling.UtbetalingEndret
 import no.nav.helse.modell.varsel.Varsel
 import no.nav.helse.modell.varsel.VarselStatusDto
+import no.nav.helse.modell.vedtaksperiode.vedtak.AvsluttetMedVedtak
 import no.nav.helse.modell.vedtaksperiode.vedtak.AvsluttetUtenVedtak
 import no.nav.helse.modell.vedtaksperiode.vedtak.SykepengevedtakBuilder
 import java.util.UUID
@@ -18,6 +19,7 @@ internal class Vedtaksperiode private constructor(
     private val gjeldendeGenerasjon get() = generasjoner.last()
     private val fom get() = gjeldendeGenerasjon.fom()
     private val tom get() = gjeldendeGenerasjon.tom()
+    private val skjæringstidspunkt get() = gjeldendeGenerasjon.skjæringstidspunkt()
     private val gjeldendeUtbetalingId get() = gjeldendeGenerasjon.utbetalingId()
 
     fun vedtaksperiodeId() = vedtaksperiodeId
@@ -79,6 +81,22 @@ internal class Vedtaksperiode private constructor(
             .vedtaksperiodeId(vedtaksperiodeId)
         avsluttetUtenVedtak
             .byggMelding(sykepengevedtakBuilder)
+        person.byggOgFattVedtak(sykepengevedtakBuilder)
+    }
+
+    fun avsluttetMedVedtak(
+        person: Person,
+        avsluttetMedVedtak: AvsluttetMedVedtak,
+    ) {
+        if (forkastet) return
+        val sykepengevedtakBuilder = SykepengevedtakBuilder()
+        gjeldendeGenerasjon.avsluttetMedVedtak(avsluttetMedVedtak, sykepengevedtakBuilder)
+        sykepengevedtakBuilder
+            .organisasjonsnummer(organisasjonsnummer)
+            .vedtaksperiodeId(vedtaksperiodeId)
+        avsluttetMedVedtak
+            .byggVedtak(sykepengevedtakBuilder)
+        person.byggVedtakMedSkjønnsfastsattSykepengegrunnlag(skjæringstidspunkt, sykepengevedtakBuilder)
         person.byggOgFattVedtak(sykepengevedtakBuilder)
     }
 

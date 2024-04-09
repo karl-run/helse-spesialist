@@ -12,6 +12,7 @@ import no.nav.helse.modell.varsel.Varsel.Companion.inneholderSvartelistedeVarsle
 import no.nav.helse.modell.varsel.Varsel.Companion.inneholderVarselOmAvvik
 import no.nav.helse.modell.varsel.Varsel.Companion.inneholderVarselOmNegativtBeløp
 import no.nav.helse.modell.varsel.Varsel.Companion.inneholderVarselOmTilbakedatering
+import no.nav.helse.modell.vedtaksperiode.vedtak.AvsluttetMedVedtak
 import no.nav.helse.modell.vedtaksperiode.vedtak.SykepengevedtakBuilder
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
@@ -171,6 +172,14 @@ internal class Generasjon private constructor(
         tilstand.avsluttetUtenVedtak(this, sykepengevedtakBuilder)
     }
 
+    internal fun avsluttetMedVedtak(
+        avsluttetMedVedtak: AvsluttetMedVedtak,
+        sykepengevedtakBuilder: SykepengevedtakBuilder,
+    ) {
+        if (spleisBehandlingId == null) spleisBehandlingId = avsluttetMedVedtak.spleisBehandlingId()
+        tilstand.avsluttetMedVedtak(this, sykepengevedtakBuilder)
+    }
+
     private fun nyTilstand(
         gammel: Tilstand,
         ny: Tilstand,
@@ -180,7 +189,7 @@ internal class Generasjon private constructor(
         this.tilstand = ny
     }
 
-    private fun supplerAvsluttetUtenVedtak(sykepengevedtakBuilder: SykepengevedtakBuilder) {
+    private fun byggVedtak(sykepengevedtakBuilder: SykepengevedtakBuilder) {
         spleisBehandlingId?.let { sykepengevedtakBuilder.spleisBehandlingId(it) }
         sykepengevedtakBuilder
             .tags(tags)
@@ -323,6 +332,13 @@ internal class Generasjon private constructor(
             ident: String,
             hendelseId: UUID,
         ) {}
+
+        fun avsluttetMedVedtak(
+            generasjon: Generasjon,
+            sykepengevedtakBuilder: SykepengevedtakBuilder,
+        ) {
+            throw IllegalStateException("Forventer ikke avsluttet_med_vedtak i tilstand ${navn()}")
+        }
     }
 
     internal data object KlarTilBehandling : Tilstand {
@@ -342,6 +358,17 @@ internal class Generasjon private constructor(
         ) {
             generasjon.utbetalingId = null
             generasjon.nyTilstand(this, VidereBehandlingAvklares, UUID.randomUUID())
+        }
+
+        override fun avsluttetMedVedtak(
+            generasjon: Generasjon,
+            sykepengevedtakBuilder: SykepengevedtakBuilder,
+        ) {
+            check(
+                generasjon.utbetalingId != null,
+            ) { "Mottatt avsluttet_med_vedtak på generasjon som ikke har utbetaling. Det gir ingen mening." }
+            generasjon.nyTilstand(this, VedtakFattet, UUID.randomUUID())
+            generasjon.byggVedtak(sykepengevedtakBuilder)
         }
     }
 
@@ -378,7 +405,7 @@ internal class Generasjon private constructor(
                     else -> AvsluttetUtenVedtak
                 }
             generasjon.nyTilstand(this, nesteTilstand, UUID.randomUUID())
-            generasjon.supplerAvsluttetUtenVedtak(sykepengevedtakBuilder)
+            generasjon.byggVedtak(sykepengevedtakBuilder)
         }
     }
 
@@ -419,7 +446,7 @@ internal class Generasjon private constructor(
             sykepengevedtakBuilder: SykepengevedtakBuilder,
         ) {
             sikkerlogg.warn("Spesialist mottar avsluttet_uten_vedtak når den allerede er i tilstand ${navn()}")
-            generasjon.supplerAvsluttetUtenVedtak(sykepengevedtakBuilder)
+            generasjon.byggVedtak(sykepengevedtakBuilder)
         }
     }
 
@@ -439,7 +466,7 @@ internal class Generasjon private constructor(
             sykepengevedtakBuilder: SykepengevedtakBuilder,
         ) {
             sikkerlogg.warn("Spesialist mottar avsluttet_uten_vedtak når den allerede er i tilstand AvsluttetUtenVedtakMedVarsler")
-            generasjon.supplerAvsluttetUtenVedtak(sykepengevedtakBuilder)
+            generasjon.byggVedtak(sykepengevedtakBuilder)
         }
 
         override fun nySpleisBehandling(
