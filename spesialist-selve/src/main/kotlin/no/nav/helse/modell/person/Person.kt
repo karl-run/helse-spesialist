@@ -1,6 +1,6 @@
 package no.nav.helse.modell.person
 
-import no.nav.helse.modell.sykefraværstilfelle.SkjønnsfastsattSykepengegrunnlag
+import no.nav.helse.modell.person.SkjønnsfastsatteSykepengegrunnlag.Companion.gjenopprett
 import no.nav.helse.modell.sykefraværstilfelle.SkjønnsfastsattSykepengegrunnlagDto
 import no.nav.helse.modell.utbetaling.UtbetalingEndret
 import no.nav.helse.modell.vedtaksperiode.NyeVarsler
@@ -21,7 +21,7 @@ class Person private constructor(
     private val aktørId: String,
     private val fødselsnummer: String,
     vedtaksperioder: List<Vedtaksperiode>,
-    private val skjønnsfastsatteSykepengegrunnlag: List<SkjønnsfastsattSykepengegrunnlag>,
+    private val skjønnsfastsatteSykepengegrunnlag: SkjønnsfastsatteSykepengegrunnlag,
 ) {
     private val vedtaksperioder = vedtaksperioder.toMutableList()
     private val observers = mutableSetOf<PersonObserver>()
@@ -40,7 +40,7 @@ class Person private constructor(
             aktørId = aktørId,
             fødselsnummer = fødselsnummer,
             vedtaksperioder = vedtaksperioder.map { it.toDto() },
-            skjønnsfastsatteSykepengegrunnlag = skjønnsfastsatteSykepengegrunnlag.map { it.toDto() },
+            skjønnsfastsatteSykepengegrunnlag = skjønnsfastsatteSykepengegrunnlag.toDto(),
         )
 
     fun behandleTilbakedateringBehandlet(perioder: List<Periode>) {
@@ -116,18 +116,7 @@ class Person private constructor(
                             it.generasjoner,
                         )
                     },
-                skjønnsfastsatteSykepengegrunnlag =
-                    skjønnsfastsattSykepengegrunnlag.map {
-                        SkjønnsfastsattSykepengegrunnlag.gjenopprett(
-                            it.type,
-                            it.årsak,
-                            it.skjæringstidspunkt,
-                            it.begrunnelseFraMal,
-                            it.begrunnelseFraFritekst,
-                            it.begrunnelseFraKonklusjon,
-                            it.opprettet,
-                        )
-                    },
+                skjønnsfastsatteSykepengegrunnlag = skjønnsfastsattSykepengegrunnlag.gjenopprett(),
             )
         }
     }

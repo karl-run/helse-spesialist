@@ -65,23 +65,16 @@ internal class SkjønnsfastsattSykepengegrunnlag(
     internal companion object {
         internal fun List<SkjønnsfastsattSykepengegrunnlag>.sortert() = sortedBy { it.opprettet }
 
-        internal fun gjenopprett(
-            type: SkjønnsfastsettingstypeDto,
-            årsak: SkjønnsfastsettingsårsakDto,
-            skjæringstidspunkt: LocalDate,
-            begrunnelseFraMal: String,
-            begrunnelseFraFritekst: String,
-            begrunnelseFraKonklusjon: String,
-            opprettet: LocalDateTime,
-        ) = SkjønnsfastsattSykepengegrunnlag(
-            type = type.tilSkjønnsfastsettingtype(),
-            årsak = årsak.tilSkjønnsfastsettingårsak(),
-            skjæringstidspunkt = skjæringstidspunkt,
-            begrunnelseFraMal = begrunnelseFraMal,
-            begrunnelseFraFritekst = begrunnelseFraFritekst,
-            begrunnelseFraKonklusjon = begrunnelseFraKonklusjon,
-            opprettet = opprettet,
-        )
+        internal fun gjenopprett(dto: SkjønnsfastsattSykepengegrunnlagDto) =
+            SkjønnsfastsattSykepengegrunnlag(
+                type = dto.type.tilSkjønnsfastsettingtype(),
+                årsak = dto.årsak.tilSkjønnsfastsettingårsak(),
+                skjæringstidspunkt = dto.skjæringstidspunkt,
+                begrunnelseFraMal = dto.begrunnelseFraMal,
+                begrunnelseFraFritekst = dto.begrunnelseFraFritekst,
+                begrunnelseFraKonklusjon = dto.begrunnelseFraKonklusjon,
+                opprettet = dto.opprettet,
+            )
     }
 }
 
