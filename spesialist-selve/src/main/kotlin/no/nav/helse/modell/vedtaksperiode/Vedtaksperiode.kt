@@ -52,6 +52,13 @@ internal class Vedtaksperiode private constructor(
 
     internal fun nySpleisBehandling(spleisBehandling: SpleisBehandling) {
         if (forkastet || !spleisBehandling.erRelevantFor(vedtaksperiodeId)) return
+        if (generasjoner.harGenerasjonFor(spleisBehandling.spleisBehandlingId)) {
+            logg.warn("{} har allerede en generasjon for {}, oppretter ikke ny",
+                kv("Vedtaksperiode", vedtaksperiodeId),
+                kv("spleisBehandlingId", spleisBehandling.spleisBehandlingId)
+            )
+            return
+        }
         nyGenerasjon(gjeldendeGenerasjon.nySpleisBehandling(spleisBehandling))
     }
 
@@ -215,5 +222,8 @@ internal class Vedtaksperiode private constructor(
                     }.toSet(),
             )
         }
+
+        fun List<Generasjon>.harGenerasjonFor(spleisBehandlingId: UUID) =
+            this.any { it.toDto().spleisBehandlingId == spleisBehandlingId }
     }
 }

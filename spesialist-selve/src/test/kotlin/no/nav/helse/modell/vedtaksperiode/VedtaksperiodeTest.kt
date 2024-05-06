@@ -27,6 +27,30 @@ class VedtaksperiodeTest {
     }
 
     @Test
+    fun `oppretter ikke ny generasjon dersom vi har en tilknyttet spleisbehandling`() {
+        val vedtaksperiodeId = UUID.randomUUID()
+        val spleisBehandlingId = UUID.randomUUID()
+        val vedtaksperiode = nyVedtaksperiode(
+            vedtaksperiodeId = vedtaksperiodeId,
+            spleisBehandlingId = spleisBehandlingId
+        )
+        assertEquals(1, vedtaksperiode.toDto().generasjoner.size)
+
+        vedtaksperiode.nySpleisBehandling(nySpleisBehandling(
+            vedtaksperiodeId = vedtaksperiodeId,
+            spleisBehandlingId = spleisBehandlingId
+        ))
+        assertEquals(1, vedtaksperiode.toDto().generasjoner.size)
+
+        vedtaksperiode.nySpleisBehandling(nySpleisBehandling(
+            vedtaksperiodeId = vedtaksperiodeId,
+            spleisBehandlingId = UUID.randomUUID()
+        ))
+        assertEquals(2, vedtaksperiode.toDto().generasjoner.size)
+
+    }
+
+    @Test
     fun `oppretter generasjon når Spleis forteller om ny behandling uavhengig av tilstand på tidligere generasjon - Spleis er master for behandlinger`() {
         val vedtaksperiodeId = UUID.randomUUID()
         val vedtaksperiode = nyVedtaksperiode(vedtaksperiodeId)
